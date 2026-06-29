@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#c4956a">
+<link rel="manifest" href="./manifest.json">
+<link rel="stylesheet" href="./src/common.css">
+<title>母亲膳食管家 - 添加摄入</title>
+<style>
+/* 添加页特有样式 */
+.header-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.back-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.steps {
+  display: flex;
+  padding: 16px;
+  gap: 8px;
+}
+.step {
+  flex: 1;
+  text-align: center;
+  padding: 8px;
+  border-radius: 12px;
+  background: var(--card);
+  font-size: 12px;
+  color: var(--text-light);
+  border: 2px solid transparent;
+}
+.step.active {
+  border-color: var(--primary);
+  color: var(--primary);
+  font-weight: 600;
+}
+.step.done {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.content { padding: 0 16px 16px; }
+
+.cumulative-banner {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+  border-radius: 16px;
+  padding: 16px;
+  margin: 0 16px 16px;
+}
+.cumulative-banner h3 {
+  font-size: 14px;
+  opacity: 0.9;
+  margin-bottom: 12px;
+}
+.cumulative-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.cumulative-item {
+  text-align: center;
+  background: rgba(255,255,255,0.15);
+  border-radius: 10px;
+  padding: 10px;
+}
+.cumulative-item .value { font-size: 18px; font-weight: 700; }
+.cumulative-item .label { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+
+.selected-foods {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 16px;
+  margin: 0 16px 16px;
+}
+.selected-foods h3 {
+  font-size: 15px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.selected-food-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.selected-food-item:last-child { border-bottom: none; }
+.selected-food-item .emoji { font-size: 24px; }
+.selected-food-info { flex: 1; }
+.selected-food-name { font-size: 14px; font-weight: 600; }
+.selected-food-detail { font-size: 12px; color: var(--text-light); }
+.selected-food-delete {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: #ffebee;
+  color: var(--danger);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.meal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.meal-card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 16px;
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+}
+.meal-card .emoji { font-size: 32px; margin-bottom: 8px; display: block; }
+.meal-card .name { font-size: 15px; font-weight: 600; }
+.meal-card .time { font-size: 12px; color: var(--text-light); margin-top: 4px; }
+.meal-card.selected {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.category-card {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 14px 8px;
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+}
+.category-card .emoji { font-size: 28px; margin-bottom: 6px; display: block; }
+.category-card .name { font-size: 13px; }
+.category-card.selected {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+
+.food-select-list {
+  background: var(--card);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.food-select-item {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  gap: 12px;
+}
+.food-select-item:last-child { border-bottom: none; }
+.food-select-item.selected { background: var(--primary-light); }
+.food-select-item .emoji { font-size: 28px; }
+.food-select-info { flex: 1; }
+.food-select-name { font-size: 15px; font-weight: 600; }
+.food-select-meta { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+.food-select-check {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: transparent;
+}
+.food-select-item.selected .food-select-check {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.quantity-section {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 20px 16px;
+  margin-bottom: 16px;
+}
+.quantity-display { text-align: center; margin-bottom: 20px; }
+.quantity-display .food-name { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.quantity-display .amount { font-size: 48px; font-weight: 700; color: var(--primary); line-height: 1; }
+.quantity-display .unit-label { font-size: 14px; color: var(--text-light); margin-top: 4px; }
+.quantity-display .weight-est { font-size: 13px; color: var(--text-light); margin-top: 8px; }
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.qty-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: var(--bg);
+  font-size: 28px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.qty-btn:active { background: var(--primary-light); transform: scale(0.95); }
+
+.unit-selector {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.unit-btn {
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.unit-btn.selected {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.nutrient-preview {
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 14px;
+  margin-top: 16px;
+}
+.nutrient-preview h4 {
+  font-size: 13px;
+  color: var(--text-light);
+  margin-bottom: 10px;
+}
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.preview-item {
+  text-align: center;
+  padding: 8px;
+  background: var(--card);
+  border-radius: 10px;
+}
+.preview-item .value { font-size: 16px; font-weight: 700; }
+.preview-item .label { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+.preview-item.warning .value { color: var(--warning); }
+.preview-item.danger .value { color: var(--danger); }
+
+.action-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  padding: 12px 16px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  display: flex;
+  gap: 12px;
+  z-index: 100;
+}
+.action-bar button {
+  flex: 1;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.btn-secondary { background: var(--bg); color: var(--text); }
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:active { transform: scale(0.98); background: var(--primary-dark); }
+.btn-primary:disabled {
+  background: var(--border);
+  color: var(--text-light);
+  cursor: not-allowed;
+}
+
+.hidden { display: none !important; }
+
+.source-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.source-tab {
+  flex: 1;
+  padding: 10px 0;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+}
+.source-tab.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+  font-weight: 600;
+}
+
+@media (min-width: 768px) {
+  .action-bar { max-width: 414px; left: 50%; transform: translateX(-50%); }
+  .cumulative-banner, .selected-foods { margin-left: 16px; margin-right: 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- 头部 -->
+<div class="header">
+  <div class="header-row">
+    <button class="back-btn" onclick="goBack()">‹</button>
+    <div class="header-title">➕ 添加摄入</div>
+  </div>
+</div>
+
+<!-- 步骤指示 -->
+<div class="steps" id="stepIndicator">
+  <div class="step active" data-step="1">1. 餐次</div>
+  <div class="step" data-step="2">2. 食材</div>
+  <div class="step" data-step="3">3. 数量</div>
+</div>
+
+<!-- 累计显示 -->
+<div class="cumulative-banner" id="cumulativeBanner">
+  <h3>📊 本次累计摄入</h3>
+  <div class="cumulative-grid">
+    <div class="cumulative-item"><div class="value" id="cumProtein">0</div><div class="label">蛋白质 g</div></div>
+    <div class="cumulative-item"><div class="value" id="cumPotassium">0</div><div class="label">钾 mg</div></div>
+    <div class="cumulative-item"><div class="value" id="cumOxalate">0</div><div class="label">草酸 mg</div></div>
+    <div class="cumulative-item"><div class="value" id="cumPhosphorus">0</div><div class="label">磷 mg</div></div>
+    <div class="cumulative-item"><div class="value" id="cumCalcium">0</div><div class="label">钙 mg</div></div>
+    <div class="cumulative-item"><div class="value" id="cumPurine">0</div><div class="label">嘌呤 mg</div></div>
+  </div>
+</div>
+
+<!-- 已选食物 -->
+<div class="selected-foods" id="selectedFoodsSection">
+  <h3>已选食物 <span style="font-weight:400;font-size:13px;color:var(--text-light)" id="selectedCount">0 种</span></h3>
+  <div id="selectedFoodsList"></div>
+</div>
+
+<!-- 内容区 -->
+<div class="content" id="contentArea">
+
+  <!-- 步骤1: 餐次 -->
+  <div id="step1">
+    <div class="meal-grid">
+      <div class="meal-card" data-meal="breakfast" onclick="selectMeal(this)">
+        <span class="emoji">🌅</span>
+        <div class="name">早餐</div>
+        <div class="time">06:00 - 09:00</div>
+      </div>
+      <div class="meal-card" data-meal="lunch" onclick="selectMeal(this)">
+        <span class="emoji">☀️</span>
+        <div class="name">午餐</div>
+        <div class="time">11:00 - 14:00</div>
+      </div>
+      <div class="meal-card" data-meal="dinner" onclick="selectMeal(this)">
+        <span class="emoji">🌙</span>
+        <div class="name">晚餐</div>
+        <div class="time">17:00 - 20:00</div>
+      </div>
+      <div class="meal-card" data-meal="snack" onclick="selectMeal(this)">
+        <span class="emoji">🍪</span>
+        <div class="name">加餐</div>
+        <div class="time">任意时间</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 步骤2: 食材 -->
+  <div id="step2" class="hidden">
+    <div class="source-tabs" id="sourceTabs">
+      <button class="source-tab active" data-source="recent" onclick="switchFoodSource('recent')">我的日常</button>
+      <button class="source-tab" data-source="category" onclick="switchFoodSource('category')">按分类查找</button>
+    </div>
+
+    <div id="recentFoodsSection">
+      <div class="food-select-list" id="recentFoodsList"></div>
+      <div class="empty-state" id="recentEmptyState" style="display:none;">
+        <div class="icon">📭</div>
+        <p>最近 30 天还没有选过食物</p>
+        <button class="btn-primary" style="margin-top:12px;" onclick="switchFoodSource('category')">去分类查找</button>
+      </div>
+    </div>
+
+    <div id="categorySection" class="hidden">
+      <div class="category-grid" id="categoryGrid"></div>
+      <div id="foodListSection" class="hidden" style="margin-top:10px;">
+        <button class="btn-secondary" style="margin-bottom:10px;width:100%;" onclick="backToCategories()">‹ 返回分类</button>
+        <div class="food-select-list" id="foodSelectList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 步骤3: 数量调整 -->
+  <div id="step3" class="hidden">
+    <div class="quantity-section">
+      <div class="quantity-display">
+        <div class="food-name" id="qtyFoodName">-</div>
+        <div class="amount" id="qtyAmount">1</div>
+        <div class="unit-label" id="qtyUnitLabel">-</div>
+        <div class="weight-est" id="qtyWeightEst">-</div>
+      </div>
+
+      <div class="quantity-controls">
+        <button class="qty-btn" onclick="changeQty(-1)">−</button>
+        <button class="qty-btn" onclick="changeQty(-0.5)">−½</button>
+        <button class="qty-btn" onclick="changeQty(0.5)">+½</button>
+        <button class="qty-btn" onclick="changeQty(1)">+</button>
+      </div>
+
+      <div class="unit-selector" id="unitSelector"></div>
+
+      <div class="nutrient-preview">
+        <h4>📊 预计摄入营养</h4>
+        <div class="preview-grid" id="qtyPreviewGrid"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 底部操作 -->
+<div class="action-bar" id="actionBar">
+  <button class="btn-secondary" onclick="prevStep()" id="btnBack">取消</button>
+  <button class="btn-primary" onclick="nextStep()" id="btnNext">下一步</button>
+</div>
+
+<script src="./src/db.js" defer></script>
+<script src="./src/foods_data.js" defer></script>
+<script src="./src/common.js" defer></script>
+<script src="./src/data-service.js" defer></script>
+<script>
+let escapeHtml, formatLocalDate, formatRelativeDate, getMealName, getCategoryName, CATEGORY_ICONS, getNutrientConfig, getStatusClass, goPage;
+let DataService;
+
+let currentStep = 1;
+let selectedMeal = null;
+let selectedCategory = null;
+let selectedFood = null;
+let currentQty = 1;
+let currentUnit = null;
+let sessionFoods = []; // 本次添加会话中已持久化的食物（含 dbId）
+let currentLimits = {};
+let nutrientConfig = {};
+let foodSource = 'recent'; // 'recent' | 'category'
+let recentFoods = [];
+
+const categoryIds = ['grain', 'beans', 'vegetable', 'fruit', 'meat', 'dairy', 'nuts'];
+
+function showStep(n) {
+  document.querySelectorAll('.step').forEach(s => {
+    const stepNum = parseInt(s.dataset.step);
+    s.classList.remove('active', 'done');
+    if (stepNum === n) s.classList.add('active');
+    else if (stepNum < n) s.classList.add('done');
+  });
+
+  for (let i = 1; i <= 3; i++) {
+    const el = document.getElementById('step' + i);
+    if (el) el.classList.toggle('hidden', i !== n);
+  }
+
+  currentStep = n;
+  updateButtons();
+}
+
+function updateButtons() {
+  const backBtn = document.getElementById('btnBack');
+  const nextBtn = document.getElementById('btnNext');
+
+  if (currentStep === 1) {
+    backBtn.textContent = '取消';
+    nextBtn.textContent = '下一步';
+    nextBtn.disabled = !selectedMeal;
+  } else if (currentStep === 2) {
+    backBtn.textContent = '上一步';
+    nextBtn.textContent = '下一步';
+    nextBtn.disabled = true; // step2 通过点击食物直接进入 step3
+  } else if (currentStep === 3) {
+    backBtn.textContent = '上一步';
+    nextBtn.textContent = '✓ 确认保存';
+    nextBtn.disabled = false;
+  }
+}
+
+async function nextStep() {
+  if (currentStep === 1 && selectedMeal) {
+    showStep(2);
+    await switchFoodSource('recent');
+    return;
+  }
+  if (currentStep === 3) {
+    await saveAndFinish();
+  }
+}
+
+function prevStep() {
+  if (currentStep === 1) {
+    goPage('index.html');
+    return;
+  }
+  if (currentStep === 2) {
+    showStep(1);
+    return;
+  }
+  if (currentStep === 3) {
+    showStep(2);
+    selectedFood = null;
+    currentQty = 1;
+    currentUnit = null;
+    updateButtons();
+  }
+}
+
+function goBack() {
+  goPage('index.html');
+}
+
+function selectMeal(el) {
+  document.querySelectorAll('.meal-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedMeal = el.dataset.meal;
+  updateButtons();
+}
+
+function selectCategory(el) {
+  document.querySelectorAll('.category-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedCategory = el.dataset.cat;
+  renderFoodList();
+}
+
+function backToCategories() {
+  selectedCategory = null;
+  selectedFood = null;
+  renderCategoryGrid();
+  updateButtons();
+}
+
+function renderCategoryGrid() {
+  document.getElementById('categoryGrid').classList.remove('hidden');
+  document.getElementById('foodListSection').classList.add('hidden');
+
+  const grid = document.getElementById('categoryGrid');
+  grid.innerHTML = categoryIds.map(id => `
+    <div class="category-card" data-cat="${escapeHtml(id)}" onclick="selectCategory(this)">
+      <span class="emoji">${escapeHtml(CATEGORY_ICONS[id])}</span>
+      <div class="name">${escapeHtml(getCategoryName(id))}</div>
+    </div>
+  `).join('');
+}
+
+async function renderFoodList() {
+  document.getElementById('categoryGrid').classList.add('hidden');
+  document.getElementById('foodListSection').classList.remove('hidden');
+
+  const list = document.getElementById('foodSelectList');
+  const foods = await DataService.getFoods(selectedCategory);
+  window._currentFoods = foods;
+
+  list.innerHTML = foods.map(food => `
+    <div class="food-select-item" data-id="${escapeHtml(food.id)}" onclick="selectFood(this, '${escapeHtml(food.id)}')">
+      <span class="emoji">${escapeHtml(food.emoji || '🍽️')}</span>
+      <div class="food-select-info">
+        <div class="food-select-name">${escapeHtml(food.name)}</div>
+        <div class="food-select-meta">${escapeHtml(String(food.kcal || 0))} kcal/100g · 蛋白质 ${escapeHtml(String(food.protein_g || 0))}g</div>
+      </div>
+      <div class="food-select-check">✓</div>
+    </div>
+  `).join('');
+}
+
+async function selectFood(el, foodId) {
+  document.querySelectorAll('.food-select-item').forEach(item => item.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedFood = window._currentFoods.find(f => f.id === foodId);
+  currentQty = 1;
+  currentUnit = null;
+  showStep(3);
+  await initQuantity();
+}
+
+async function switchFoodSource(source) {
+  foodSource = source;
+  document.querySelectorAll('.source-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.source === source);
+  });
+
+  if (source === 'recent') {
+    document.getElementById('recentFoodsSection').classList.remove('hidden');
+    document.getElementById('categorySection').classList.add('hidden');
+    await renderRecentFoods();
+  } else {
+    document.getElementById('recentFoodsSection').classList.add('hidden');
+    document.getElementById('categorySection').classList.remove('hidden');
+    backToCategories();
+  }
+}
+
+async function renderRecentFoods() {
+  const list = await DataService.getRecentFoods({ days: 30 });
+  recentFoods = list;
+  const container = document.getElementById('recentFoodsList');
+  const empty = document.getElementById('recentEmptyState');
+
+  if (!list || list.length === 0) {
+    container.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+
+  empty.style.display = 'none';
+  container.innerHTML = list.map(item => `
+    <div class="food-select-item" data-id="${escapeHtml(item.food.id)}" onclick="selectRecentFood('${escapeHtml(item.food.id)}', ${item.lastQuantity}, '${escapeHtml(item.lastUnit)}', ${item.lastUnitWeightG})">
+      <span class="emoji">${escapeHtml(item.food.emoji || '🍽️')}</span>
+      <div class="food-select-info">
+        <div class="food-select-name">${escapeHtml(item.food.name)}</div>
+        <div class="food-select-meta">上次：${item.lastQuantity}${escapeHtml(item.lastUnit)}（约${item.lastUnitWeightG * item.lastQuantity}g）· ${escapeHtml(formatRelativeDate(item.lastUsedAt))}</div>
+      </div>
+      <div class="food-select-check">›</div>
+    </div>
+  `).join('');
+}
+
+async function selectRecentFood(foodId, lastQty, lastUnit, lastUnitWeightG) {
+  selectedFood = await DataService.getFoodById(foodId);
+  if (!selectedFood) return;
+
+  currentQty = Number(lastQty) || 1;
+  const units = await DataService.getFoodUnits(foodId);
+  const matched = units.find(u => u.name === lastUnit);
+  if (matched) {
+    currentUnit = { name: matched.name, weight: matched.weight_g };
+  } else if (units.length) {
+    currentUnit = { name: units[0].name, weight: units[0].weight_g };
+  } else {
+    currentUnit = { name: 'g', weight: 1 };
+  }
+
+  showStep(3);
+  updateQtyDisplay();
+  updateQtyPreview();
+}
+
+async function initQuantity() {
+  if (!selectedFood) return;
+
+  if (!currentUnit) {
+    const units = await DataService.getFoodUnits(selectedFood.id);
+    currentUnit = units.length > 0
+      ? { name: units[0].name, weight: units[0].weight_g }
+      : { name: 'g', weight: 1 };
+  }
+
+  document.getElementById('qtyFoodName').textContent = selectedFood.name;
+  updateQtyDisplay();
+
+  const units = await DataService.getFoodUnits(selectedFood.id);
+  const unitSelector = document.getElementById('unitSelector');
+  const buttons = units.map((u, i) => {
+    const isSelected = currentUnit && currentUnit.name === u.name;
+    return `
+      <button class="unit-btn ${isSelected ? 'selected' : ''}" data-name="${escapeHtml(u.name)}" data-weight="${u.weight_g}" onclick="selectUnit(this)">
+        ${escapeHtml(u.name)} (${escapeHtml(u.description || u.weight_g + 'g')})
+      </button>
+    `;
+  }).join('');
+  unitSelector.innerHTML = buttons + `
+    <button class="unit-btn ${currentUnit && currentUnit.name === 'g' ? 'selected' : ''}" data-name="g" data-weight="1" onclick="selectUnit(this)">克 (g)</button>
+  `;
+
+  updateQtyPreview();
+}
+
+function selectUnit(el) {
+  document.querySelectorAll('.unit-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  currentUnit = { name: el.dataset.name, weight: Number(el.dataset.weight) };
+  updateQtyDisplay();
+  updateQtyPreview();
+}
+
+function changeQty(delta) {
+  currentQty = Math.max(0.5, currentQty + delta);
+  updateQtyDisplay();
+  updateQtyPreview();
+}
+
+function updateQtyDisplay() {
+  document.getElementById('qtyAmount').textContent = currentQty;
+  document.getElementById('qtyUnitLabel').textContent = `${escapeHtml(currentUnit.name)} (约${currentUnit.weight}g)`;
+  const totalWeight = currentQty * currentUnit.weight;
+  document.getElementById('qtyWeightEst').textContent = `≈ ${totalWeight}g`;
+}
+
+function updateQtyPreview() {
+  const weight = currentQty * currentUnit.weight;
+  const nutrients = window.App.calcNutrients(selectedFood, weight);
+
+  const keys = [
+    { key: 'protein', name: '蛋白质', unit: 'g' },
+    { key: 'potassium', name: '钾', unit: 'mg' },
+    { key: 'phosphorus', name: '磷', unit: 'mg' },
+    { key: 'calcium', name: '钙', unit: 'mg' },
+    { key: 'oxalate', name: '草酸', unit: 'mg' },
+    { key: 'purine', name: '嘌呤', unit: 'mg' }
+  ];
+
+  document.getElementById('qtyPreviewGrid').innerHTML = keys.map(n => {
+    const value = nutrients[n.key];
+    const limit = currentLimits[n.key];
+    const pct = limit > 0 ? (value / limit) * 100 : 0;
+    let status = '';
+    if (pct > 100) status = 'danger';
+    else if (pct > 50) status = 'warning';
+    return `
+      <div class="preview-item ${status}">
+        <div class="value">${value.toFixed(1)}</div>
+        <div class="label">${escapeHtml(n.name)}${escapeHtml(n.unit)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function saveAndFinish() {
+  const weight = currentQty * currentUnit.weight;
+
+  const id = await DataService.addIntake({
+    date: formatLocalDate(new Date()),
+    meal: selectedMeal,
+    foodId: selectedFood.id,
+    quantity: currentQty,
+    unit: currentUnit.name,
+    weight
+  });
+
+  sessionFoods.push({
+    dbId: id,
+    food: selectedFood,
+    qty: currentQty,
+    unit: currentUnit,
+    weight,
+    nutrients: window.App.calcNutrients(selectedFood, weight)
+  });
+
+  // 重置食材选择，保留餐次，方便继续添加
+  selectedFood = null;
+  selectedCategory = null;
+  currentQty = 1;
+  currentUnit = null;
+
+  document.querySelectorAll('.category-card').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.food-select-item').forEach(item => item.classList.remove('selected'));
+
+  updateCumulative();
+  renderSelectedFoods();
+
+  // 回到我的日常，继续添加同餐次的其他食物
+  showStep(2);
+  await switchFoodSource('recent');
+}
+
+function updateCumulative() {
+  const totals = sessionFoods.reduce((sum, item) => {
+    sum.protein += item.nutrients.protein;
+    sum.potassium += item.nutrients.potassium;
+    sum.phosphorus += item.nutrients.phosphorus;
+    sum.calcium += item.nutrients.calcium;
+    sum.oxalate += item.nutrients.oxalate;
+    sum.purine += item.nutrients.purine;
+    return sum;
+  }, { protein: 0, potassium: 0, phosphorus: 0, calcium: 0, oxalate: 0, purine: 0 });
+
+  document.getElementById('cumProtein').textContent = totals.protein.toFixed(1);
+  document.getElementById('cumPotassium').textContent = Math.round(totals.potassium);
+  document.getElementById('cumOxalate').textContent = Math.round(totals.oxalate);
+  document.getElementById('cumPhosphorus').textContent = Math.round(totals.phosphorus);
+  document.getElementById('cumCalcium').textContent = Math.round(totals.calcium);
+  document.getElementById('cumPurine').textContent = Math.round(totals.purine);
+}
+
+function renderSelectedFoods() {
+  document.getElementById('selectedCount').textContent = `${sessionFoods.length} 种`;
+
+  const list = document.getElementById('selectedFoodsList');
+  if (sessionFoods.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:var(--text-light);padding:20px;font-size:13px;">尚未选择食物</div>';
+    return;
+  }
+
+  list.innerHTML = sessionFoods.map((item, idx) => `
+    <div class="selected-food-item">
+      <span class="emoji">${escapeHtml(item.food.emoji || '🍽️')}</span>
+      <div class="selected-food-info">
+        <div class="selected-food-name">${escapeHtml(item.food.name)} ${item.qty}${escapeHtml(item.unit.name)}</div>
+        <div class="selected-food-detail">≈${item.weight}g · ${Math.round(item.nutrients.kcal)}kcal · 蛋白质${item.nutrients.protein.toFixed(1)}g</div>
+      </div>
+      <button class="selected-food-delete" onclick="removeFood(${idx})">×</button>
+    </div>
+  `).join('');
+}
+
+async function removeFood(idx) {
+  const item = sessionFoods[idx];
+  if (item && item.dbId) {
+    await DataService.deleteIntake(item.dbId);
+  }
+  sessionFoods.splice(idx, 1);
+  updateCumulative();
+  renderSelectedFoods();
+}
+
+async function init() {
+  ({
+    escapeHtml, formatLocalDate, formatRelativeDate, getMealName, getCategoryName,
+    CATEGORY_ICONS, getNutrientConfig, getStatusClass, goPage
+  } = window.App || {});
+  DataService = window.DataService;
+  await window.App.initApp();
+  currentLimits = await DataService.getUserLimits();
+  nutrientConfig = getNutrientConfig(currentLimits);
+  updateCumulative();
+  renderSelectedFoods();
+  updateButtons();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>
