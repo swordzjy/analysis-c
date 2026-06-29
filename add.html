@@ -256,6 +256,47 @@
   border-color: var(--primary);
 }
 
+.grams-input-row {
+  margin-top: 16px;
+  text-align: left;
+}
+.grams-input-row label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-light);
+  margin-bottom: 6px;
+}
+.grams-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+}
+.grams-field input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  font-family: inherit;
+  outline: none;
+  -moz-appearance: textfield;
+}
+.grams-field input::-webkit-outer-spin-button,
+.grams-field input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.grams-suffix {
+  font-size: 16px;
+  color: var(--text-light);
+  font-weight: 500;
+}
+
 .nutrient-preview {
   background: var(--bg);
   border-radius: 12px;
@@ -445,7 +486,15 @@
         <div class="amount" id="qtyAmount">1</div>
         <div class="unit-label" id="qtyUnitLabel">-</div>
         <div class="weight-est" id="qtyWeightEst">-</div>
+    </div>
+
+    <div class="grams-input-row">
+      <label for="gramsInput">具体克数</label>
+      <div class="grams-field">
+        <input type="number" id="gramsInput" min="1" step="1" inputmode="numeric" oninput="onGramsInput(this)">
+        <span class="grams-suffix">g</span>
       </div>
+    </div>
 
       <div class="quantity-controls">
         <button class="qty-btn" onclick="changeQty(-1)">−</button>
@@ -732,11 +781,24 @@ function changeQty(delta) {
   updateQtyPreview();
 }
 
+function onGramsInput(input) {
+  if (!currentUnit) return;
+  const grams = Number(input.value);
+  if (!Number.isFinite(grams) || grams <= 0) return;
+  currentQty = Math.max(0.5, grams / currentUnit.weight);
+  document.getElementById('qtyAmount').textContent = currentQty;
+  document.getElementById('qtyUnitLabel').textContent = `${escapeHtml(currentUnit.name)} (约${currentUnit.weight}g)`;
+  document.getElementById('qtyWeightEst').textContent = `≈ ${Math.round(grams)}g`;
+  updateQtyPreview();
+}
+
 function updateQtyDisplay() {
   document.getElementById('qtyAmount').textContent = currentQty;
   document.getElementById('qtyUnitLabel').textContent = `${escapeHtml(currentUnit.name)} (约${currentUnit.weight}g)`;
   const totalWeight = currentQty * currentUnit.weight;
-  document.getElementById('qtyWeightEst').textContent = `≈ ${totalWeight}g`;
+  document.getElementById('qtyWeightEst').textContent = `≈ ${Math.round(totalWeight)}g`;
+  const gramsInput = document.getElementById('gramsInput');
+  if (gramsInput) gramsInput.value = Math.round(totalWeight);
 }
 
 function updateQtyPreview() {
