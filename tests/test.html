@@ -201,6 +201,34 @@
       assertEqual(window.App.formatRelativeDate(`${threeDaysAgo}T10:00:00.000Z`), '3天前', '3天前');
     });
 
+    // 10. 我的日常
+    await test('DataService.getRecentFoods 返回最近 30 天去重食物', async () => {
+      const today = formatLocalDate(new Date());
+      const yesterday = formatLocalDate(new Date(Date.now() - 86400000));
+      const oldDate = formatLocalDate(new Date(Date.now() - 31 * 86400000));
+
+      const db = await window.getDB();
+      const all = await db.getIntakesByDateRange('user_1', '2000-01-01', '2099-12-31');
+      for (const r of all) await db.deleteIntake(r.id);
+
+      await DataService.addIntake({ date: oldDate, meal: 'breakfast', foodId: 'milk', quantity: 1, unit: '杯', weight: 250 });
+      await DataService.addIntake({ date: yesterday, meal: 'breakfast', foodId: 'spinach', quantity: 1, unit: '把', weight: 100 });
+      await DataService.addIntake({ date: today, meal: 'breakfast', foodId: 'egg', quantity: 1, unit: '个', weight: 50 });
+      await DataService.addIntake({ date: today, meal: 'lunch', foodId: 'egg', quantity: 2, unit: '个', weight: 100 });
+
+      const recent = await DataService.getRecentFoods({ days: 30 });
+      if (!Array.isArray(recent)) throw new Error('返回值不是数组');
+      if (recent.length !== 2) throw new Error(`期望2条，实际${recent.length}条`);
+
+      const egg = recent.find(r => r.food.id === 'egg');
+      if (!egg) throw new Error('未找到鸡蛋');
+      if (egg.lastQuantity !== 2) throw new Error(`鸡蛋数量应为2，实际${egg.lastQuantity}`);
+      if (egg.lastUnit !== '个') throw new Error(`鸡蛋单位应为个，实际${egg.lastUnit}`);
+
+      if (recent[0].food.id !== 'egg') throw new Error('第一条应为最近使用的鸡蛋');
+      if (recent.some(r => r.food.id === 'milk')) throw new Error('30天外的牛奶不应出现');
+    });
+
     render();
   }
 
