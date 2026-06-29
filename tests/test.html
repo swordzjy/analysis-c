@@ -229,6 +229,34 @@
       if (recent.some(r => r.food.id === 'milk')) throw new Error('30天外的牛奶不应出现');
     });
 
+    await test('getRecentFoods 保留历史单位供 UI 回退', async () => {
+      const today = formatLocalDate(new Date());
+      const db = await window.getDB();
+      // 直接写入一条单位不在食物单位表中的记录
+      await db.addIntake({
+        user_id: 'user_1',
+        date: today,
+        food_id: 'egg',
+        food_name: '鸡蛋',
+        category: 'meat',
+        quantity: 2,
+        unit: '盒',
+        unit_weight_g: 300,
+        actual_grams: 600,
+        meal: 'breakfast',
+        nutrients: window.App.calcNutrients(await DataService.getFoodById('egg'), 600),
+        created_at: new Date().toISOString()
+      });
+
+      const recent = await DataService.getRecentFoods({ days: 30 });
+      const egg = recent.find(r => r.food.id === 'egg');
+      if (!egg) throw new Error('未找到鸡蛋');
+      if (egg.lastUnit !== '盒') throw new Error(`应保留历史单位盒，实际${egg.lastUnit}`);
+
+      const units = await DataService.getFoodUnits('egg');
+      if (units.some(u => u.name === '盒')) throw new Error('鸡蛋单位表中不应包含盒');
+    });
+
     render();
   }
 
