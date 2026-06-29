@@ -25,19 +25,52 @@
     return initPromise;
   };
 
-  async function ensureSeeded(db) {
-    const existing = await db.getAllFoods();
-    if (existing && existing.length > 0) return;
+ async function ensureSeeded(db) {
+   const existing = await db.getAllFoods();
+   const foods = (AppData.EXTENDED_FOODS || []).map(food => ({
+     ...food,
+     category_id: App.CATEGORY_MAP[food.category] || food.category
+   }));
+   const units = AppData.EXTENDED_UNITS || [];
 
-    const foods = (AppData.EXTENDED_FOODS || []).map(food => ({
-      ...food,
-      category_id: App.CATEGORY_MAP[food.category] || food.category
-    }));
-    const units = AppData.EXTENDED_UNITS || [];
+    if (!existing || existing.length === 0) {
+      // 首次：全部种子
+     if (foods.length) await db.seedFoods(foods);
+     if (units.length) await db.seedUnits(units);
+      return;
+    }
 
-    if (foods.length) await db.seedFoods(foods);
-    if (units.length) await db.seedUnits(units);
-  }
+    // 检查食物数据版本，版本变化则全量重种
+    const FOOD_VERSION = '3';
+    const storedVersion = localStorage.getItem('food_data_version');
+    if (storedVersion !== FOOD_VERSION) {
+      // 清除旧数据，重新种子
+      await db.clearFoods();
+      await db.clearUnits();
+      await db.seedFoods(foods);
+      await db.seedUnits(units);
+      localStorage.setItem('food_data_version', FOOD_VERSION);
+      console.log('Food data version updated, re-seeded all foods');
+      return;
+    }
+
+    // 增量：添加缺失的食物
+    const existingIds = new Set(existing.map(f => f.id));
+    const newFoods = foods.filter(f => !existingIds.has(f.id));
+    if (newFoods.length) {
+      await db.seedFoods(newFoods);
+      console.log(`Seeded ${newFoods.length} new foods`);
+    }
+
+    // 增量：添加缺失的单位
+    const allUnits = await db.getAllUnits();
+    const existingKeys = new Set(allUnits.map(u => `${u.food_id}|${u.name}`));
+    const newUnits = units.filter(u => !existingKeys.has(`${u.food_id}|${u.name}`));
+    if (newUnits.length) {
+      await db.seedUnits(newUnits);
+      console.log(`Seeded ${newUnits.length} new units`);
+    }
+ }
 
   async function migrateLegacyData(db) {
     const raw = localStorage.getItem('dietRecords');
@@ -140,6 +173,10 @@
     }
 
     const qty = Number(quantity) || 0;
+    if (qty <= 0) {
+      throw new Error('Quantity must be greater than 0');
+    }
+
     let unitWeightG;
     let actualGrams;
 
@@ -195,6 +232,62 @@
   DataService.deleteIntake = async function deleteIntake(id) {
     const db = await getDB();
     return db.deleteIntake(id);
+  };
+
+  DataService.updateIntake = async function updateIntake(id, {
+    quantity,
+    unit,
+    weight,
+    meal,
+    nutrients
+  }) {
+    const db = await getDB();
+    const existing = await db.getIntakeById(id);
+    if (!existing) {
+      throw new Error(`Intake not found: ${id}`);
+    }
+
+    const food = await db.getFoodById(existing.food_id);
+    if (!food) {
+      throw new Error(`Food not found: ${existing.food_id}`);
+    }
+
+    const qty = quantity != null ? Number(quantity) : existing.quantity;
+    if (qty <= 0) {
+      throw new Error('Quantity must be greater than 0');
+    }
+
+    let unitWeightG = existing.unit_weight_g;
+    let actualGrams = existing.actual_grams;
+    let finalUnit = unit || existing.unit;
+    let finalNutrients = nutrients || existing.nutrients;
+
+    if (quantity != null || unit != null || weight != null) {
+      if (typeof weight === 'number' && weight > 0) {
+        actualGrams = weight;
+        unitWeightG = qty > 0 ? weight / qty : existing.unit_weight_g;
+        finalNutrients = App.calcNutrients(food, actualGrams);
+      } else if (unit != null && unit !== existing.unit) {
+        unitWeightG = await db.getUnitWeight(existing.food_id, unit);
+        actualGrams = qty * unitWeightG;
+        finalNutrients = App.calcNutrients(food, actualGrams);
+      } else if (quantity != null) {
+        actualGrams = qty * unitWeightG;
+        finalNutrients = App.calcNutrients(food, actualGrams);
+      }
+    }
+
+    const updates = {
+      quantity: qty,
+      unit: finalUnit,
+      unit_weight_g: unitWeightG,
+      actual_grams: actualGrams,
+      nutrients: finalNutrients,
+      updated_at: new Date().toISOString()
+    };
+    if (meal != null) updates.meal = meal;
+
+    return db.updateIntake(id, updates);
   };
 
   // ========== 我的日常 ==========

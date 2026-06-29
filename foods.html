@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#c4956a">
+<link rel="manifest" href="./manifest.json">
+<link rel="stylesheet" href="./src/common.css">
+<title>母亲膳食管家 - 食物库</title>
+<style>
+.search-bar {
+  background: var(--card);
+  padding: 10px 16px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.search-input-wrap {
+  display: flex; align-items: center; background: var(--bg);
+  border-radius: 14px; padding: 12px 16px; gap: 10px;
+}
+.search-input-wrap .icon { font-size: 20px; color: var(--text-light); }
+.search-input-wrap input {
+  flex: 1; border: none; background: transparent;
+  font-size: 16px; font-family: inherit; outline: none;
+}
+.content-area { padding: 12px 16px 24px; }
+
+.cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.cat-card {
+  background: var(--card); border-radius: 14px; padding: 16px 10px;
+  text-align: center; cursor: pointer; border: 2px solid transparent;
+  transition: all 0.2s; box-shadow: var(--shadow);
+}
+.cat-card:active { transform: scale(0.97); }
+.cat-card .emoji { font-size: 32px; display: block; margin-bottom: 6px; }
+.cat-card .name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.cat-card .count { font-size: 12px; color: var(--text-light); }
+
+.list-header {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+}
+.list-header button {
+  background: var(--bg); border: none; padding: 8px 14px;
+  border-radius: 10px; font-size: 14px; color: var(--text);
+  cursor: pointer; font-family: inherit;
+}
+.list-header .cat-name { font-size: 15px; font-weight: 600; }
+
+.filter-bar {
+  display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;
+}
+.filter-pill {
+  padding: 8px 14px; border-radius: 18px; border: 1px solid var(--border);
+  background: var(--bg); font-size: 13px; cursor: pointer;
+  font-family: inherit; transition: all 0.2s; white-space: nowrap;
+  display: flex; align-items: center; gap: 4px;
+}
+.filter-pill.active {
+  background: var(--primary); color: white; border-color: var(--primary); font-weight: 600;
+}
+.filter-pill .arrow { font-size: 11px; }
+.filter-explain {
+  font-size: 12px; color: var(--text-light); margin-bottom: 12px;
+  padding: 8px 12px; background: var(--primary-light); border-radius: 8px;
+}
+
+.food-card {
+  background: var(--card); border-radius: 16px; padding: 16px;
+  margin-bottom: 12px; box-shadow: var(--shadow); cursor: pointer;
+  transition: transform 0.2s;
+}
+.food-card:active { transform: scale(0.98); }
+.food-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.food-name { font-size: 16px; font-weight: 700; }
+.food-kcal { font-size: 13px; color: var(--text-light); text-align: right; }
+.food-kcal .num { font-size: 16px; font-weight: 600; color: var(--text); display: block; }
+
+.food-badges { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 6px; }
+.food-badge {
+  font-size: 11px; padding: 2px 8px; border-radius: 9px;
+  background: var(--bg); color: var(--text-light);
+}
+.food-badge.danger { background: #ffebee; color: var(--danger); font-weight: 600; }
+.food-badge.warning { background: #fff3e0; color: var(--warning); font-weight: 600; }
+.food-badge.safe { background: #e8f5e9; color: var(--safe); font-weight: 600; }
+
+.food-select-btn {
+  display: inline-block; padding: 8px 16px; border-radius: 14px;
+  background: var(--primary); color: white; border: none;
+  font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit;
+  margin-top: 8px;
+}
+.food-select-btn:active { background: var(--primary-dark); }
+.food-bars { display: flex; gap: 3px; align-items: flex-end; height: 22px; }
+.food-bar { flex: 1; border-radius: 3px 3px 0 0; max-width: 30px; transition: height 0.3s; }
+.food-bar-legend { display: flex; gap: 3px; margin-top: 4px; } .food-bar-legend span { flex: 1; max-width: 30px; text-align: center; font-size: 10px; color: var(--text-light); }
+
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text-light); }
+.empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+.empty-state p { font-size: 14px; }
+
+/* Food detail modal */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200;
+  display: flex; align-items: flex-end; justify-content: center;
+  opacity: 0; visibility: hidden; transition: all 0.3s;
+}
+.modal-overlay.show { opacity: 1; visibility: visible; }
+.modal-content {
+  background: var(--card); border-radius: 24px 24px 0 0; width: 100%;
+  max-height: 85vh; overflow-y: auto; padding: 20px 16px 32px;
+  transform: translateY(100%); transition: transform 0.3s ease;
+}
+.modal-overlay.show .modal-content { transform: translateY(0); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-title { font-size: 18px; font-weight: 700; }
+.modal-close {
+  width: 36px; height: 36px; border-radius: 50%; background: var(--bg);
+  border: none; font-size: 20px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.nutrient-detail-list { margin-bottom: 20px; }
+.nutrient-detail-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 0; border-bottom: 1px solid var(--border);
+}
+.nutrient-detail-item:last-child { border-bottom: none; }
+.nutrient-detail-name { display: flex; align-items: center; gap: 8px; font-size: 15px; }
+.nutrient-detail-value { font-size: 15px; color: var(--text-light); }
+.nutrient-detail-value .num { font-weight: 700; color: var(--text); }
+
+/* New food search */
+.new-food-form {
+  background: var(--card); border-radius: 16px; padding: 20px; box-shadow: var(--shadow);
+}
+.new-food-form h3 { font-size: 16px; margin-bottom: 14px; }
+.form-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.form-row label { font-size: 14px; width: 60px; flex-shrink: 0; color: var(--text-light); }
+.form-row input {
+  flex: 1; padding: 10px 12px; border: 1px solid var(--border);
+  border-radius: 10px; font-size: 15px; font-family: inherit;
+}
+.btn-row { display: flex; gap: 10px; margin-top: 16px; }
+.btn-row button {
+  flex: 1; padding: 14px; border-radius: 14px; border: none;
+  font-size: 16px; font-weight: 600; cursor: pointer; font-family: inherit;
+}
+.btn-calc { background: var(--primary); color: white; }
+.btn-reset { background: var(--bg); color: var(--text); }
+.result-preview {
+  background: var(--bg); border-radius: 14px; padding: 16px; margin-top: 16px;
+}
+.result-preview h4 { font-size: 14px; margin-bottom: 10px; color: var(--text-light); }
+.result-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.result-item { text-align: center; padding: 10px 4px; background: var(--card); border-radius: 10px; }
+.result-item .val { font-size: 16px; font-weight: 700; }
+.result-item .lbl { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+
+@media (min-width: 768px) {
+  .modal-overlay { align-items: center; }
+  .modal-content { border-radius: 24px; max-width: 400px; max-height: 90vh; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title">🍽️ 食物库</div>
+  <div class="header-sub" id="headerSub">了解食物，选对食物</div>
+</div>
+
+<div class="search-bar">
+  <div class="search-input-wrap">
+    <span class="icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="搜索食物，如：鸡蛋、菠菜..." oninput="onSearch(this.value)">
+  </div>
+</div>
+
+<div class="content-area" id="contentArea"></div>
+
+<div class="modal-overlay" id="foodModal" onclick="closeModal(event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">食物详情</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-item" onclick="goPage('index.html')"><span class="icon">📊</span>今日</button>
+  <button class="tab-item active" onclick="goPage('foods.html')"><span class="icon">🍽️</span>食物库</button>
+  <button class="tab-item" onclick="goPage('stats.html')"><span class="icon">📈</span>趋势</button>
+  <button class="tab-item" onclick="goPage('settings.html')"><span class="icon">⚙️</span>设置</button>
+</div>
+
+<script src="./src/db.js" defer></script>
+<script src="./src/foods_data.js" defer></script>
+<script src="./src/common.js" defer></script>
+<script src="./src/data-service.js" defer></script>
+<script>
+let escapeHtml, goPage, getCategoryName, CATEGORY_ICONS;
+let DataService;
+
+let allFoods = [];
+let currentLimits = {};
+let currentCategory = null;  // null = showing category grid
+let activeFilter = null;     // 'kidney' | 'oxalate' | 'purine' | 'potassium' | null
+let sortAsc = false;         // sort direction
+let searchKeyword = '';
+let selectMode = false;
+let recentFoodIds = new Set(); // IDs of foods eaten in last 30 days
+
+function CATEGORY_MAP() {
+  return { '谷物':'grain', '豆类':'beans', '蔬菜':'vegetable', '水果':'fruit', '肉蛋':'meat', '奶类':'dairy', '油脂坚果':'nuts' };
+}
+
+function kidneyScore(food) {
+  const ox = (food.oxalate_mg || 0) / 200 * 50;
+  const ph = (food.phosphorus_mg || 0) / 300 * 30;
+  const pu = (food.purine_mg || 0) / 200 * 20;
+  return Math.round(ox + ph + pu);
+}
+
+function getBadges(food) {
+  const b = [];
+  if ((food.oxalate_mg || 0) >= 100) b.push({ t: '高草酸', c: 'danger' });
+  if ((food.purine_mg || 0) >= 150) b.push({ t: '高嘌呤', c: 'danger' });
+  if ((food.potassium_mg || 0) >= 300) b.push({ t: '高钾', c: 'warning' });
+  if ((food.phosphorus_mg || 0) >= 200) b.push({ t: '高磷', c: 'warning' });
+  const isGood = (food.oxalate_mg || 0) < 50 && (food.purine_mg || 0) < 100 && (food.phosphorus_mg || 0) < 150;
+  if (isGood) b.push({ t: '护肾', c: 'safe' });
+  return b;
+}
+
+async function onSearch(value) {
+  searchKeyword = value.trim();
+  await render();
+}
+
+function selectCategory(catId) {
+  currentCategory = catId;
+  activeFilter = null;
+  sortAsc = false;
+  render();
+}
+
+function backToCategories() {
+  currentCategory = null;
+  activeFilter = null;
+  sortAsc = false;
+  searchKeyword = '';
+  document.getElementById('searchInput').value = '';
+  render();
+}
+
+function toggleFilter(filterId) {
+  if (activeFilter === filterId) {
+    sortAsc = !sortAsc;
+  } else {
+    activeFilter = filterId;
+    sortAsc = (filterId === 'kidney');
+  }
+  render();
+}
+
+function clearFilter() {
+  activeFilter = null;
+  sortAsc = false;
+  render();
+}
+
+async function render() {
+  const container = document.getElementById('contentArea');
+  if (!allFoods.length) {
+    allFoods = await DataService.getFoods();
+    const recents = await DataService.getRecentFoods({ days: 30 });
+    recentFoodIds = new Set(recents.map(r => r.food.id));
+  }
+
+  // Search with no local results -> API
+  if (searchKeyword) {
+    const kw = searchKeyword.toLowerCase();
+    const matches = allFoods.filter(f => f.name.toLowerCase().includes(kw));
+    if (matches.length === 0) {
+      await renderNewFoodSearch(container, searchKeyword);
+      return;
+    }
+    // Filter and prioritize not-recently-eaten
+    const sorted = [...matches].sort((a, b) => {
+      const aRecent = recentFoodIds.has(a.id) ? 1 : 0;
+      const bRecent = recentFoodIds.has(b.id) ? 1 : 0;
+      return aRecent - bRecent;
+    });
+    if (currentCategory) {
+      const catId = getCategoryName ? getCategoryName(currentCategory) : currentCategory;
+      currentCategory = null; // show all matching, not category-filtered
+    }
+    activeFilter = null;
+    container.innerHTML = renderFoodList(sorted);
+    return;
+  }
+
+  // Showing category grid
+  if (!currentCategory) {
+    const cats = ['grain', 'beans', 'vegetable', 'fruit', 'meat', 'dairy', 'nuts'];
+    const cm = CATEGORY_MAP();
+    const counts = {};
+    allFoods.forEach(f => {
+      const cid = f.category_id || cm[f.category] || f.category;
+      counts[cid] = (counts[cid] || 0) + 1;
+    });
+    const icons = CATEGORY_ICONS || {};
+    const getName = getCategoryName || (id => id);
+    container.innerHTML = `
+      <div class="cat-grid">
+        ${cats.map(cid => `
+          <div class="cat-card" onclick="selectCategory('${escapeHtml(cid)}')">
+            <span class="emoji">${escapeHtml(icons[cid] || '🍽️')}</span>
+            <div class="name">${escapeHtml(getName(cid))}</div>
+            <div class="count">${counts[cid] || 0} 种</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    return;
+  }
+
+  // Showing food list within a category
+  const cm = CATEGORY_MAP();
+  let foods = allFoods.filter(f => {
+    const cid = f.category_id || cm[f.category] || f.category;
+    return cid === currentCategory;
+  });
+
+  const getName = getCategoryName || (id => id);
+  const icons = CATEGORY_ICONS || {};
+
+  // Apply filter
+  if (activeFilter === 'kidney') {
+    foods = foods.filter(f => (f.oxalate_mg || 0) < 50 && (f.purine_mg || 0) < 100 && (f.phosphorus_mg || 0) < 150);
+    foods.sort((a, b) => sortAsc ? kidneyScore(b) - kidneyScore(a) : kidneyScore(a) - kidneyScore(b));
+  } else if (activeFilter === 'oxalate') {
+    foods = foods.filter(f => (f.oxalate_mg || 0) >= 100);
+    foods.sort((a, b) => sortAsc ? (a.oxalate_mg || 0) - (b.oxalate_mg || 0) : (b.oxalate_mg || 0) - (a.oxalate_mg || 0));
+  } else if (activeFilter === 'purine') {
+    foods = foods.filter(f => (f.purine_mg || 0) >= 150);
+    foods.sort((a, b) => sortAsc ? (a.purine_mg || 0) - (b.purine_mg || 0) : (b.purine_mg || 0) - (a.purine_mg || 0));
+  } else if (activeFilter === 'potassium') {
+    foods = foods.filter(f => (f.potassium_mg || 0) >= 300);
+    foods.sort((a, b) => sortAsc ? (a.potassium_mg || 0) - (b.potassium_mg || 0) : (b.potassium_mg || 0) - (a.potassium_mg || 0));
+  }
+
+  const filterBar = `
+    <div class="filter-bar">
+      <button class="filter-pill ${!activeFilter ? 'active' : ''}" onclick="clearFilter()">全部</button>
+      <button class="filter-pill ${activeFilter === 'kidney' ? 'active' : ''}" onclick="toggleFilter('kidney')">
+        ✅护肾${activeFilter === 'kidney' ? (sortAsc ? '<span class="arrow">↑</span>' : '<span class="arrow">↓</span>') : ''}
+      </button>
+      <button class="filter-pill ${activeFilter === 'oxalate' ? 'active' : ''}" onclick="toggleFilter('oxalate')">
+        ⚠️高草酸${activeFilter === 'oxalate' ? (sortAsc ? '<span class="arrow">↑</span>' : '<span class="arrow">↓</span>') : ''}
+      </button>
+      <button class="filter-pill ${activeFilter === 'purine' ? 'active' : ''}" onclick="toggleFilter('purine')">
+        🧬高嘌呤${activeFilter === 'purine' ? (sortAsc ? '<span class="arrow">↑</span>' : '<span class="arrow">↓</span>') : ''}
+      </button>
+      <button class="filter-pill ${activeFilter === 'potassium' ? 'active' : ''}" onclick="toggleFilter('potassium')">
+        ⚡高钾${activeFilter === 'potassium' ? (sortAsc ? '<span class="arrow">↑</span>' : '<span class="arrow">↓</span>') : ''}
+      </button>
+    </div>
+    ${activeFilter ? `<div class="filter-explain">${{
+      kidney: '✅ 护肾标准：草酸<50mg + 嘌呤<100mg + 磷<150mg（每100g），三项都低才算护肾食物',
+      oxalate: '⚠️ 高草酸：含量 ≥ 100mg/100g，肾结石风险人群需控制',
+      purine: '🧬 高嘌呤：含量 ≥ 150mg/100g，痛风/高尿酸人群需注意',
+      potassium: '⚡ 高钾：含量 ≥ 300mg/100g，肾功能不全者需限制钾摄入'
+    }[activeFilter] || ''}</div>` : ''}
+  `;
+
+  container.innerHTML = `
+    <div class="list-header">
+      <button onclick="backToCategories()">‹ 返回</button>
+      <span class="cat-name">${escapeHtml(icons[currentCategory] || '')} ${escapeHtml(getName(currentCategory))} · ${foods.length} 种</span>
+    </div>
+    ${filterBar}
+    ${renderFoodList(foods)}
+  `;
+}
+
+function renderFoodList(foods) {
+  if (!foods.length) {
+    return '<div class="empty-state"><div class="icon">📭</div><p>该筛选下暂无食物</p></div>';
+  }
+  return foods.map(food => {
+    const badges = getBadges(food).map(b => `<span class="food-badge ${b.c}">${escapeHtml(b.t)}</span>`).join('');
+    const maxV = Math.max(
+      food.protein_g || 0, (food.oxalate_mg || 0) / 2, (food.potassium_mg || 0) / 10,
+      (food.phosphorus_mg || 0) / 10, (food.purine_mg || 0) / 5, (food.calcium_mg || 0) / 10, 1
+    );
+    const bars = [
+      { v: food.protein_g || 0, c: 'var(--n-protein)', l: '蛋' },
+      { v: (food.potassium_mg || 0) / 10, c: 'var(--n-potassium)', l: '钾' },
+      { v: (food.phosphorus_mg || 0) / 10, c: 'var(--n-phosphorus)', l: '磷' },
+      { v: (food.calcium_mg || 0) / 10, c: 'var(--n-calcium)', l: '钙' },
+      { v: (food.oxalate_mg || 0) / 2, c: 'var(--n-oxalate)', l: '草' },
+      { v: (food.purine_mg || 0) / 5, c: 'var(--n-purine)', l: '嘌' }
+    ];
+    const barsHtml = bars.map(b => {
+      const h = maxV > 0 ? Math.max(4, (b.v / maxV) * 22) : 4;
+      return `<div class="food-bar" style="height:${h}px;background:${b.c};" title="${Math.round(b.v)}"></div>`;
+    }).join('');
+
+    return `
+      <div class="food-card" onclick="showFoodDetail('${escapeHtml(food.id)}')">
+        <div class="food-card-top">
+          <div>
+            <div class="food-name">${escapeHtml(food.emoji || '🍽️')} ${escapeHtml(food.name)}</div>
+            ${badges ? `<div class="food-badges">${badges}</div>` : ''}
+          </div>
+          <div class="food-kcal"><span class="num">${escapeHtml(String(food.kcal || 0))}</span> kcal</div>
+        </div>
+        <div class=food-bars>${barsHtml}</div>
+        ${selectMode ? `<button class="food-select-btn" onclick="event.stopPropagation();selectForAdd('${escapeHtml(food.id)}')">+ 选这个</button>` : ''}
+        <div class="food-bar-legend">${bars.map(b => '<span style="color:' + b.c + '">●' + b.l + '</span>').join('')}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function renderNewFoodSearch(container, keyword) {
+  container.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><p>正在查询「${escapeHtml(keyword)}」的营养数据…</p></div>`;
+
+  try {
+    const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(keyword)}&search_simple=1&json=1&page_size=3&fields=product_name,nutriments`;
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('API failed');
+    const data = await resp.json();
+    const product = (data.products || []).find(p => {
+      const n = p.nutriments || {};
+      return n.proteins_100g || n['energy-kcal_100g'];
+    });
+
+    if (product) {
+      const n = product.nutriments || {};
+      const vals = [
+        { l: '蛋白质', u: 'g', v: n.proteins_100g || 0, lim: currentLimits.protein || 50, i: '💪' },
+        { l: '脂肪', u: 'g', v: n.fat_100g || 0, lim: 60, i: '🧈' },
+        { l: '碳水', u: 'g', v: n.carbohydrates_100g || 0, lim: 250, i: '🍚' },
+        { l: '热量', u: 'kcal', v: n['energy-kcal_100g'] || 0, lim: 2000, i: '🔥' },
+        { l: '钾', u: 'mg', v: (n.potassium_100g || 0) * 1000, lim: currentLimits.potassium || 2500, i: '⚡' },
+        { l: '钙', u: 'mg', v: (n.calcium_100g || 0) * 1000, lim: currentLimits.calcium || 800, i: '🥛' },
+      ];
+      container.innerHTML = `
+        <div class="new-food-form">
+          <h3>🔍 「${escapeHtml(keyword)}」营养数据</h3>
+          <p style="font-size:13px;color:var(--text-light);margin-bottom:16px;">数据来源：Open Food Facts · 每100g估算值</p>
+          <div class="result-grid">
+            ${vals.map(v => {
+              const pct = v.lim > 0 ? (v.v / v.lim * 100) : 0;
+              const color = pct > 80 ? 'var(--danger)' : pct > 50 ? 'var(--warning)' : 'var(--text)';
+              return `<div class="result-item"><div class="val" style="color:${color}">${Math.round(v.v)}${v.u}</div><div class="lbl">${v.i} ${v.l} ${pct > 0 ? Math.round(pct) + '%' : ''}</div></div>`;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    } else {
+      throw new Error('No data');
+    }
+  } catch (e) {
+    container.innerHTML = `
+      <div class="new-food-form">
+        <h3>🔍 未收录「${escapeHtml(keyword)}」</h3>
+        <p style="font-size:14px;color:var(--text-light);margin-bottom:16px;">请手动输入每100g的营养成分</p>
+        <div class="form-row"><label>蛋白质</label><input type="number" id="nfProtein" placeholder="g" step="0.1"></div>
+        <div class="form-row"><label>钾</label><input type="number" id="nfPotassium" placeholder="mg" step="1"></div>
+        <div class="form-row"><label>磷</label><input type="number" id="nfPhosphorus" placeholder="mg" step="1"></div>
+        <div class="form-row"><label>钙</label><input type="number" id="nfCalcium" placeholder="mg" step="1"></div>
+        <div class="form-row"><label>草酸</label><input type="number" id="nfOxalate" placeholder="mg" step="1"></div>
+        <div class="form-row"><label>嘌呤</label><input type="number" id="nfPurine" placeholder="mg" step="1"></div>
+        <div class="btn-row">
+          <button class="btn-reset" onclick="document.querySelectorAll('.new-food-form input').forEach(i=>i.value='');document.getElementById('newFoodResult').innerHTML=''">清空</button>
+          <button class="btn-calc" onclick="calcManual('${escapeHtml(keyword)}')">查看营养分布</button>
+        </div>
+        <div id="newFoodResult"></div>
+      </div>
+    `;
+  }
+}
+
+function calcManual(name) {
+  const items = [
+    { k: 'nfProtein', l: '蛋白质', u: 'g', lim: currentLimits.protein || 50, i: '💪' },
+    { k: 'nfPotassium', l: '钾', u: 'mg', lim: currentLimits.potassium || 2500, i: '⚡' },
+    { k: 'nfPhosphorus', l: '磷', u: 'mg', lim: currentLimits.phosphorus || 1000, i: '🦴' },
+    { k: 'nfCalcium', l: '钙', u: 'mg', lim: currentLimits.calcium || 800, i: '🥛' },
+    { k: 'nfOxalate', l: '草酸', u: 'mg', lim: currentLimits.oxalate || 200, i: '⚠️' },
+    { k: 'nfPurine', l: '嘌呤', u: 'mg', lim: currentLimits.purine || 300, i: '🧬' },
+  ];
+  const r = document.getElementById('newFoodResult');
+  r.innerHTML = `
+    <div class="result-preview">
+      <h4>📊 ${escapeHtml(name)} 每100g营养分析</h4>
+      <div class="result-grid">
+        ${items.map(item => {
+          const v = parseFloat(document.getElementById(item.k)?.value) || 0;
+          const pct = item.lim > 0 ? (v / item.lim * 100) : 0;
+          const color = pct > 80 ? 'var(--danger)' : pct > 50 ? 'var(--warning)' : 'var(--text)';
+          return `<div class="result-item"><div class="val" style="color:${color}">${v}${item.u}</div><div class="lbl">${item.i} ${item.l} ${pct > 0 ? Math.round(pct) + '%' : ''}</div></div>`;
+        }).join('')}
+      </div>
+    </div>
+    ${activeFilter ? `<div class="filter-explain">${{
+      kidney: '✅ 护肾标准：草酸<50mg + 嘌呤<100mg + 磷<150mg（每100g），三项都低才算护肾食物',
+      oxalate: '⚠️ 高草酸：含量 ≥ 100mg/100g，肾结石风险人群需控制',
+      purine: '🧬 高嘌呤：含量 ≥ 150mg/100g，痛风/高尿酸人群需注意',
+      potassium: '⚡ 高钾：含量 ≥ 300mg/100g，肾功能不全者需限制钾摄入'
+    }[activeFilter] || ''}</div>` : ''}
+  `;
+}
+
+async function showFoodDetail(foodId) {
+  const food = await DataService.getFoodById(foodId);
+  if (!food) return;
+  const modal = document.getElementById('foodModal');
+  document.getElementById('modalTitle').textContent = (food.emoji || '🍽️') + ' ' + food.name;
+
+  const nutrients = [
+    { key: 'protein', name: '蛋白质', unit: 'g', value: food.protein_g || 0, icon: '💪' },
+    { key: 'potassium', name: '钾', unit: 'mg', value: food.potassium_mg || 0, icon: '⚡' },
+    { key: 'phosphorus', name: '磷', unit: 'mg', value: food.phosphorus_mg || 0, icon: '🦴' },
+    { key: 'calcium', name: '钙', unit: 'mg', value: food.calcium_mg || 0, icon: '🥛' },
+    { key: 'oxalate', name: '草酸', unit: 'mg', value: food.oxalate_mg || 0, icon: '⚠️' },
+    { key: 'purine', name: '嘌呤', unit: 'mg', value: food.purine_mg || 0, icon: '🧬' },
+  ];
+
+  let html = '<p style="font-size:13px;color:var(--text-light);margin-bottom:16px;">每100g（生重）的营养组成</p><div class="nutrient-detail-list">';
+  nutrients.forEach(n => {
+    html += `
+      <div class="nutrient-detail-item">
+        <span class="nutrient-detail-name"><span>${escapeHtml(n.icon)}</span> ${escapeHtml(n.name)}</span>
+        <span class="nutrient-detail-value">
+          <span class="num">${escapeHtml(String(n.value))}${escapeHtml(n.unit)}</span>
+        </span>
+      </div>
+    `;
+  });
+  html += '</div>';
+  const srcLabel = { CFCT: '中国食物成分表', USDA: 'USDA FoodData Central', PUB: '已发表研究', EST: '估算值' };
+  html += `<p style="font-size:12px;color:var(--text-light);text-align:center;margin-top:8px;">数据来源：${srcLabel[food.source] || '未知'}</p>`;
+
+  document.getElementById('modalBody').innerHTML = html;
+  modal.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(event) {
+  if (event && event.target !== event.currentTarget) return;
+  document.getElementById('foodModal').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+
+function selectForAdd(foodId) {
+  sessionStorage.setItem('selectedFoodId', foodId);
+  goPage('add.html');
+}
+
+async function init() {
+  ({ escapeHtml, goPage, getCategoryName, CATEGORY_ICONS } = window.App || {});
+  DataService = window.DataService;
+  await window.App.initApp();
+  selectMode = new URLSearchParams(window.location.search).has('select');
+  currentLimits = await DataService.getUserLimits();
+  allFoods = await DataService.getFoods();
+  const recents = await DataService.getRecentFoods({ days: 30 });
+  recentFoodIds = new Set(recents.map(r => r.food.id));
+  await render();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

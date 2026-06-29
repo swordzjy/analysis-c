@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#c4956a">
+<link rel="manifest" href="./manifest.json">
+<link rel="stylesheet" href="./src/common.css">
+<title>母亲膳食管家</title>
+<style>
+/* 首页特有样式 */
+.date-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.date-display {
+  font-size: 20px;
+  font-weight: 700;
+}
+.date-display .weekday {
+  font-size: 13px;
+  color: var(--text-light);
+  font-weight: 400;
+  margin-left: 8px;
+}
+.date-nav-btns {
+  display: flex;
+  gap: 4px;
+}
+.date-nav-btns button {
+  background: var(--primary-light);
+  border: none;
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 13px;
+  color: var(--primary);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.dashboard { padding: 16px; }
+
+.core-ring-section {
+  background: var(--card);
+  border-radius: 20px;
+  padding: 24px 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+.core-ring-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.core-ring-header h2 {
+  font-size: 15px;
+  color: var(--text-light);
+  font-weight: 500;
+}
+
+.core-rings {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.ring-container {
+  text-align: center;
+  position: relative;
+}
+.ring-svg {
+  transform: rotate(-90deg);
+  display: block;
+  margin: 0 auto;
+}
+.ring-bg {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 8;
+}
+.ring-progress {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.8s ease;
+}
+
+.ring-inner-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin-top: -2px;
+}
+.ring-percent {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+}
+.ring-label {
+  font-size: 11px;
+  color: var(--text-light);
+  margin-top: 2px;
+}
+
+.key-numbers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.key-number { text-align: center; }
+.key-number .value {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.key-number .limit {
+  font-size: 12px;
+  color: var(--text-light);
+  font-weight: 400;
+}
+.key-number .label {
+  font-size: 11px;
+  color: var(--text-light);
+  margin-top: 4px;
+}
+
+.nutrient-bars {
+  background: var(--card);
+  border-radius: 20px;
+  padding: 20px 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+.nutrient-bars h3 {
+  font-size: 15px;
+  margin-bottom: 16px;
+  color: var(--text-light);
+  font-weight: 500;
+}
+
+.bar-item { margin-bottom: 16px; }
+.bar-item:last-child { margin-bottom: 0; }
+
+.bar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.bar-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.bar-name .icon { font-size: 16px; }
+.bar-values {
+  font-size: 13px;
+  color: var(--text-light);
+  text-align: right;
+}
+.bar-values .current { font-weight: 600; color: var(--text); }
+.bar-values .remaining { margin-left: 8px; font-size: 11px; }
+
+.bar-track {
+  height: 10px;
+  background: var(--bg);
+  border-radius: 5px;
+  overflow: hidden;
+  position: relative;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.6s ease;
+  position: relative;
+}
+.bar-fill.safe { background: linear-gradient(90deg, #81c784, var(--safe)); }
+.bar-fill.warning { background: linear-gradient(90deg, #ffb74d, var(--warning)); }
+.bar-fill.danger { background: linear-gradient(90deg, #ef5350, var(--danger)); }
+
+.over-limit-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #ffebee;
+  color: var(--danger);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 8px;
+  font-weight: 500;
+}
+
+.tips-card {
+  background: linear-gradient(135deg, #fff8e1, #ffecb3);
+  border-radius: 20px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+.tips-card h4 {
+  font-size: 14px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #5d4037;
+}
+.tip-item {
+  font-size: 13px;
+  color: #5d4037;
+  padding: 8px 0;
+  border-bottom: 1px dashed rgba(0,0,0,0.08);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.5;
+}
+.tip-item:last-child { border-bottom: none; }
+.tip-icon { flex-shrink: 0; font-size: 14px; }
+
+.timeline-section {
+  background: var(--card);
+  border-radius: 20px;
+  padding: 20px 16px;
+  box-shadow: var(--shadow);
+}
+.timeline-section h3 {
+  font-size: 15px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.timeline-section .count {
+  font-size: 12px;
+  color: var(--text-light);
+  font-weight: 400;
+}
+
+.timeline {
+  position: relative;
+  padding-left: 28px;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--border);
+}
+
+.timeline-item {
+  position: relative;
+  padding-bottom: 16px;
+}
+.timeline-item:last-child { padding-bottom: 0; }
+
+.timeline-dot {
+  position: absolute;
+  left: -24px;
+  top: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 2px solid var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+}
+.timeline-dot.danger {
+  border-color: var(--danger);
+  background: #ffebee;
+}
+
+.timeline-content {
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 12px;
+}
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.timeline-name { font-weight: 600; font-size: 15px; }
+.timeline-meal {
+  font-size: 11px;
+  color: var(--text-light);
+  background: var(--card);
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+.timeline-detail {
+  font-size: 12px;
+  color: var(--text-light);
+}
+.timeline-nutrients {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.nutrient-pill {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--text-light);
+}
+.nutrient-pill.danger {
+  background: #ffebee;
+  color: var(--danger);
+  font-weight: 500;
+}
+
+.timeline-item-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.timeline-item-actions button {
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  background: var(--card);
+  color: var(--text-light);
+  border: 1px solid var(--border);
+}
+.timeline-item-actions button.edit-btn {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-color: var(--primary-light);
+}
+.timeline-item-actions button.delete-btn {
+  background: #ffebee;
+  color: var(--danger);
+  border-color: #ffebee;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 150;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.modal-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.modal-sheet {
+  background: var(--card);
+  width: 100%;
+  max-width: 414px;
+  max-height: 90vh;
+  border-radius: 24px 24px 0 0;
+  padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+  overflow-y: auto;
+}
+.modal-overlay.show .modal-sheet {
+  transform: translateY(0);
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.modal-header h3 {
+  font-size: 17px;
+  font-weight: 600;
+}
+.modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: var(--bg);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.edit-form-row {
+  margin-bottom: 16px;
+}
+.edit-form-row label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-light);
+  margin-bottom: 6px;
+}
+.meal-selector {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.meal-option {
+  text-align: center;
+  padding: 10px 4px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 12px;
+  cursor: pointer;
+}
+.meal-option.selected {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+.meal-option .emoji { display: block; font-size: 18px; margin-bottom: 2px; }
+
+.edit-quantity {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+.edit-qty-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: var(--bg);
+  font-size: 22px;
+  cursor: pointer;
+}
+.edit-qty-value {
+  font-size: 28px;
+  font-weight: 700;
+  min-width: 80px;
+  text-align: center;
+}
+.edit-unit-selector {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.edit-unit-btn {
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 14px;
+  cursor: pointer;
+}
+.edit-unit-btn.selected {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+.edit-grams-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+}
+.edit-grams-field input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  font-family: inherit;
+  outline: none;
+}
+.edit-grams-suffix {
+  color: var(--text-light);
+  font-weight: 500;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+.modal-actions button {
+  flex: 1;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+.modal-actions .btn-save { background: var(--primary); color: white; }
+.modal-actions .btn-delete { background: #ffebee; color: var(--danger); }
+
+.fab {
+  position: fixed;
+  bottom: 88px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  border: none;
+  font-size: 28px;
+  box-shadow: 0 4px 16px rgba(196, 149, 106, 0.4);
+  cursor: pointer;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+}
+.fab:active { transform: scale(0.95); }
+
+@media (min-width: 768px) {
+  .fab {
+    max-width: 414px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+.view-tabs {
+  display: flex;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+.view-tab {
+  flex: 1;
+  padding: 14px 0;
+  border: none;
+  background: none;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-light);
+  cursor: pointer;
+  font-family: inherit;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+}
+.view-tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  font-weight: 600;
+}
+</style>
+</head>
+<body>
+
+<!-- 头部 -->
+<div class="header">
+  <div class="date-row">
+    <div class="date-display" id="dateDisplay">6月28日 <span class="weekday">周六</span></div>
+    <div class="date-nav-btns">
+      <button onclick="changeDate(-1)">‹ 前一天</button>
+      <button onclick="goToday()">今天</button>
+      <button onclick="changeDate(1)">后一天 ›</button>
+    </div>
+  </div>
+</div>
+
+<!-- 视图切换标签 -->
+<div class="view-tabs">
+  <button class="view-tab active" data-view="overview" onclick="switchView('overview')">今日概况</button>
+  <button class="view-tab" data-view="records" onclick="switchView('records')">摄入记录</button>
+  <button class="view-tab" data-view="tips" onclick="switchView('tips')">饮食提醒</button>
+</div>
+
+<!-- 仪表盘主体 -->
+<div class="dashboard" id="dashboard">
+  <!-- 内容由 JS 渲染 -->
+</div>
+
+<!-- 添加按钮 -->
+<button class="fab" onclick="addFood()">+</button>
+
+<!-- 底部导航 -->
+<div class="tab-bar">
+  <button class="tab-item active" onclick="goPage('index.html')">
+    <span class="icon">📊</span>
+    今日
+  </button>
+  <button class="tab-item" onclick="goPage('foods.html')">
+    <span class="icon">🍽️</span>
+    食物库
+  </button>
+  <button class="tab-item" onclick="goPage('stats.html')">
+    <span class="icon">📈</span>
+    趋势
+  </button>
+  <button class="tab-item" onclick="goPage('settings.html')">
+    <span class="icon">⚙️</span>
+    设置
+  </button>
+</div>
+
+<!-- 编辑摄入记录弹窗 -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <h3>编辑摄入记录</h3>
+      <button class="modal-close" onclick="closeEditModal()">×</button>
+    </div>
+
+    <div class="edit-form-row">
+      <div id="editFoodName" style="font-size:18px;font-weight:700;text-align:center;padding:8px 0;">-</div>
+    </div>
+
+    <div class="edit-form-row">
+      <label>餐次</label>
+      <div class="meal-selector" id="editMealSelector"></div>
+    </div>
+
+    <div class="edit-form-row">
+      <label>数量</label>
+      <div class="edit-quantity">
+        <button class="edit-qty-btn" onclick="editChangeQty(-1)">−</button>
+        <div class="edit-qty-value" id="editQtyValue">1</div>
+        <button class="edit-qty-btn" onclick="editChangeQty(1)">+</button>
+      </div>
+    </div>
+
+    <div class="edit-form-row">
+      <label>单位</label>
+      <div class="edit-unit-selector" id="editUnitSelector"></div>
+    </div>
+
+    <div class="edit-form-row">
+      <label for="editGramsInput">具体克数</label>
+      <div class="edit-grams-field">
+        <input type="number" id="editGramsInput" min="1" step="1" inputmode="numeric" oninput="onEditGramsInput(this)">
+        <span class="edit-grams-suffix">g</span>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-delete" onclick="deleteEditIntake()">删除</button>
+      <button class="btn-save" onclick="saveEditIntake()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script src="./src/db.js" defer></script>
+<script src="./src/foods_data.js" defer></script>
+<script src="./src/common.js" defer></script>
+<script src="./src/data-service.js" defer></script>
+<script>
+let escapeHtml, formatLocalDate, formatDisplayDate, getMealName, getMealTime, getNutrientConfig, getStatusClass, goPage;
+let DataService;
+
+let currentDate = new Date();
+let currentMealFilter = 'all';
+let currentView = 'overview';
+let currentLimits = {};
+let nutrientConfig = {};
+
+let editingIntake = null;
+let editingUnits = [];
+let editingQty = 1;
+let editingUnit = null;
+let editingMeal = null;
+
+function changeDate(delta) {
+  currentDate.setDate(currentDate.getDate() + delta);
+  render();
+}
+
+function goToday() {
+  currentDate = new Date();
+  render();
+}
+
+function switchView(view) {
+  currentView = view;
+  document.querySelectorAll('.view-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.view === view);
+  });
+  render();
+}
+
+function selectMealFilter(el) {
+  document.querySelectorAll('.category-pill').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  currentMealFilter = el.dataset.meal;
+  render();
+}
+
+function addFood() {
+  goPage('add.html');
+}
+
+async function render() {
+  const dateStr = formatLocalDate(currentDate);
+  document.getElementById('dateDisplay').innerHTML = formatDisplayDate(currentDate);
+
+  currentLimits = await DataService.getUserLimits();
+  nutrientConfig = getNutrientConfig(currentLimits);
+
+  const allIntakes = await DataService.getDailyIntakes(dateStr);
+  const dailyTotals = await DataService.getDailyTotals(dateStr);
+
+  // 按餐次分组
+  const mealsMap = {};
+  for (const intake of allIntakes) {
+    if (!mealsMap[intake.meal]) {
+      mealsMap[intake.meal] = { meal: intake.meal, items: [], nutrients: {} };
+    }
+    mealsMap[intake.meal].items.push(intake);
+    const n = intake.nutrients || {};
+    const m = mealsMap[intake.meal].nutrients;
+    m.protein = (m.protein || 0) + (n.protein || 0);
+    m.potassium = (m.potassium || 0) + (n.potassium || 0);
+    m.phosphorus = (m.phosphorus || 0) + (n.phosphorus || 0);
+    m.calcium = (m.calcium || 0) + (n.calcium || 0);
+    m.oxalate = (m.oxalate || 0) + (n.oxalate || 0);
+    m.purine = (m.purine || 0) + (n.purine || 0);
+  }
+
+  let intakes = Object.values(mealsMap).sort((a, b) => getMealTime(a.meal).localeCompare(getMealTime(b.meal)));
+
+  let totals = dailyTotals;
+  if (currentMealFilter !== 'all') {
+    intakes = intakes.filter(item => item.meal === currentMealFilter);
+    totals = {
+      protein_g: 0, phosphorus_mg: 0, potassium_mg: 0, calcium_mg: 0, oxalate_mg: 0, purine_mg: 0
+    };
+    for (const item of intakes) {
+      totals.protein_g += item.nutrients.protein || 0;
+      totals.phosphorus_mg += item.nutrients.phosphorus || 0;
+      totals.potassium_mg += item.nutrients.potassium || 0;
+      totals.calcium_mg += item.nutrients.calcium || 0;
+      totals.oxalate_mg += item.nutrients.oxalate || 0;
+      totals.purine_mg += item.nutrients.purine || 0;
+    }
+  }
+
+  const container = document.getElementById('dashboard');
+
+  // 空状态
+  if (allIntakes.length === 0 && currentView !== 'overview') {
+    const emptyMsgs = {
+      overview: '今日尚未记录饮食',
+      records: '今日尚未记录饮食',
+      tips: '今天还没有记录，添加一些食物查看建议'
+    };
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">🍽️</div>
+        <p>${emptyMsgs[currentView] || '今日尚未记录饮食'}</p>
+        <p style="font-size:13px;margin-top:8px">点击右下角 + 添加</p>
+      </div>
+    `;
+    return;
+  }
+
+  if (currentView === 'overview') {
+    renderOverview(container, totals);
+  } else if (currentView === 'records') {
+    renderRecords(container, intakes);
+  } else if (currentView === 'tips') {
+    renderTips(container, totals);
+  }
+}
+
+function renderOverview(container, totals) {
+  const getStatus = (val, limit) => getStatusClass(val, limit);
+  const r = 38;
+  const circumference = 2 * Math.PI * r;
+  const getOffset = (val, limit) => {
+    const pct = Math.min(val / limit, 1);
+    return circumference * (1 - pct);
+  };
+  const coreKeys = ['protein', 'potassium', 'oxalate'];
+
+  let html = `
+    <div class="core-ring-section">
+      <div class="core-ring-header">
+        <h2>今日营养摄入进度</h2>
+      </div>
+      <div class="core-rings">
+  `;
+
+  for (const key of coreKeys) {
+    const config = nutrientConfig[key];
+    const val = key === 'protein' ? totals.protein_g : totals[key + '_mg'];
+    const status = getStatus(val, config.limit);
+    const pct = Math.round((val / config.limit) * 100);
+    const offset = getOffset(val, config.limit);
+    const isOver = val > config.limit;
+
+    html += `
+      <div class="ring-container">
+        <svg class="ring-svg" width="90" height="90" viewBox="0 0 90 90">
+          <circle class="ring-bg" cx="45" cy="45" r="${r}"></circle>
+          <circle class="ring-progress" cx="45" cy="45" r="${r}" style="stroke:var(--n-${key})"
+           stroke-dasharray="${circumference.toFixed(1)}"
+           stroke-dashoffset="${offset.toFixed(1)}"></circle>
+        </svg>
+        <div class="ring-inner-text">
+          <div class="ring-percent" style="color: ${isOver ? 'var(--danger)' : ''}">
+            ${isOver ? '🔴' : pct + '%'}
+          </div>
+          <div class="ring-label">${escapeHtml(config.name)}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  html += `</div>
+    <div class="key-numbers">
+  `;
+
+  for (const key of coreKeys) {
+    const config = nutrientConfig[key];
+    const val = key === 'protein' ? totals.protein_g : totals[key + '_mg'];
+    const status = getStatus(val, config.limit);
+    html += `
+      <div class="key-number">
+       <div class="value ${status}">
+          <span style="color:var(--n-${key})">${Math.round(val)}</span><span class="limit">/${config.limit}${config.unit}</span>
+       </div>
+        <div class="label">${escapeHtml(config.name)} ${status === 'danger' ? '🔴' : status === 'warning' ? '⚠️' : ''}</div>
+      </div>
+    `;
+  }
+
+  html += `</div></div>`;
+
+  // 详细营养素条
+  const getRemaining = (val, limit) => {
+    const rem = limit - val;
+    if (rem < 0) return `已超 ${Math.abs(Math.round(rem))}`;
+    return `剩余 ${Math.round(rem)}`;
+  };
+
+  html += `<div class="nutrient-bars"><h3>详细摄入情况</h3>`;
+
+  const barKeys = ['protein', 'phosphorus', 'potassium', 'calcium', 'oxalate', 'purine'];
+  for (const key of barKeys) {
+    const config = nutrientConfig[key];
+    const val = key === 'protein' ? totals.protein_g : totals[key + '_mg'];
+    const status = getStatus(val, config.limit);
+    const pct = Math.min((val / config.limit) * 100, 100);
+    const remaining = getRemaining(val, config.limit);
+    const isOver = val > config.limit;
+
+    html += `
+      <div class="bar-item">
+        <div class="bar-header">
+          <span class="bar-name">
+            <span class="icon">${escapeHtml(config.icon)}</span> ${escapeHtml(config.name)}
+          </span>
+          <span class="bar-values">
+            <span class="current">${Math.round(val)}${escapeHtml(config.unit)}</span>
+            <span class="remaining ${status}">${remaining}${escapeHtml(config.unit)}</span>
+            ${isOver ? '<span class="over-limit-badge">🔴 超标</span>' : ''}
+          </span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${pct}%;background:var(--n-${key})"></div>
+        </div>
+      </div>
+    `;
+  }
+
+  html += `</div>`;
+
+  container.innerHTML = html;
+
+  setTimeout(() => {
+    document.querySelectorAll('.ring-progress').forEach(ring => {
+      ring.style.strokeDashoffset = ring.getAttribute('stroke-dashoffset');
+    });
+  }, 100);
+}
+
+function renderRecords(container, intakes) {
+  const mealIcons = { breakfast: '🌅', lunch: '☀️', dinner: '🌙', snack: '🍪' };
+
+  let html = '';
+  // 餐次筛选
+  const meals = ['all', 'breakfast', 'lunch', 'dinner', 'snack'];
+  const mealNames = { all: '全部', breakfast: '🌅 早餐', lunch: '☀️ 午餐', dinner: '🌙 晚餐', snack: '🍪 加餐' };
+  html += '<div class="category-scroll" id="mealFilterBar">';
+  for (const m of meals) {
+    html += `<div class="category-pill ${currentMealFilter === m ? 'active' : ''}" data-meal="${m}" onclick="selectMealFilter(this)">${mealNames[m]}</div>`;
+  }
+  html += '</div>';
+
+  if (intakes.length === 0) {
+    html += `
+      <div class="empty-state">
+        <div class="icon">📋</div>
+        <p>${currentMealFilter === 'all' ? '今日尚未记录饮食' : '该餐次暂无记录'}</p>
+        <p style="font-size:13px;margin-top:8px">点击右下角 + 添加</p>
+      </div>
+    `;
+    container.innerHTML = html;
+    return;
+  }
+
+  html += `
+    <div class="timeline-section">
+      <h3>今日摄入记录 <span class="count">${intakes.reduce((sum, i) => sum + i.items.length, 0)} 条</span></h3>
+      <div class="timeline">
+  `;
+
+  for (const item of intakes) {
+    const hasDanger = (item.nutrients.oxalate || 0) > 50 || (item.nutrients.purine || 0) > 100;
+    const mealName = escapeHtml(getMealName(item.meal));
+    const mealIcon = escapeHtml(mealIcons[item.meal] || '•');
+
+    const pills = [
+      ['protein', item.nutrients.protein || 0],
+      ['potassium', item.nutrients.potassium || 0],
+      ['oxalate', item.nutrients.oxalate || 0],
+      ['purine', item.nutrients.purine || 0],
+      ['phosphorus', item.nutrients.phosphorus || 0],
+      ['calcium', item.nutrients.calcium || 0]
+    ].filter(([_, v]) => v > 0);
+
+    const itemsHtml = item.items.map(i => `
+      <div class="timeline-detail" style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px dashed var(--border);">
+        <span>${escapeHtml(i.food_name)} ${escapeHtml(String(i.quantity))}${escapeHtml(i.unit)}（约${Math.round(i.actual_grams)}g）</span>
+        <div class="timeline-item-actions">
+          <button class="edit-btn" onclick="openEditModal(${i.id})">编辑</button>
+          <button class="delete-btn" onclick="deleteIntake(${i.id})">删除</button>
+        </div>
+      </div>
+    `).join('');
+
+    html += `
+      <div class="timeline-item">
+        <div class="timeline-dot ${hasDanger ? 'danger' : ''}">${mealIcon}</div>
+        <div class="timeline-content">
+          <div class="timeline-header">
+            <span class="timeline-name">${mealName}</span>
+            <span class="timeline-meal">${escapeHtml(getMealTime(item.meal))}</span>
+          </div>
+          ${itemsHtml}
+          <div class="timeline-nutrients">
+            ${pills.map(([k, v]) => {
+              const cfg = nutrientConfig[k];
+              if (!cfg) return '';
+              const isHigh = (k === 'oxalate' && v > 50) || (k === 'purine' && v > 100);
+              return `<span class="nutrient-pill ${isHigh ? 'danger' : ''}">${escapeHtml(cfg.name)} ${Math.round(v)}${escapeHtml(cfg.unit)}</span>`;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  html += `</div></div>`;
+  container.innerHTML = html;
+}
+
+function renderTips(container, totals) {
+  const warnings = [];
+  if (totals.oxalate_mg > currentLimits.oxalate) warnings.push({ icon: '🚰', text: '草酸已超标，建议今日多喝水（>2000ml），帮助排出草酸盐' });
+  else if (totals.oxalate_mg > currentLimits.oxalate * 0.8) warnings.push({ icon: '⚠️', text: '草酸接近限值，注意控制高草酸蔬菜' });
+  if (totals.potassium_mg > currentLimits.potassium * 0.8) warnings.push({ icon: '⚡', text: '钾摄入接近限值，晚餐避免香蕉、土豆等高钾食物' });
+  if (totals.purine_mg > currentLimits.purine * 0.8) warnings.push({ icon: '🧬', text: '嘌呤摄入较高，建议减少肉类和海鲜摄入' });
+  if (totals.protein_g > currentLimits.protein * 0.8) warnings.push({ icon: '💪', text: '蛋白质接近限值，下一餐选择低蛋白主食和蔬菜' });
+
+  if (warnings.length === 0) {
+    warnings.push({ icon: '✅', text: '目前各项营养指标均在安全范围内，继续保持！' });
+  }
+
+  container.innerHTML = `
+    <div class="tips-card">
+      <h4>💡 今日饮食建议</h4>
+      ${warnings.map(w => `
+        <div class="tip-item">
+          <span class="tip-icon">${escapeHtml(w.icon)}</span>
+          <span>${escapeHtml(w.text)}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+async function openEditModal(id) {
+  const db = await window.getDB();
+  const intake = await db.getIntakeById(id);
+  if (!intake) return;
+
+  editingIntake = intake;
+  editingMeal = intake.meal;
+  editingQty = Number(intake.quantity) || 1;
+  editingUnit = { name: intake.unit, weight: Number(intake.unit_weight_g) || 1 };
+  editingUnits = await DataService.getFoodUnits(intake.food_id);
+  if (!editingUnits.some(u => u.name === intake.unit)) {
+    editingUnits = editingUnits.concat([{ name: intake.unit, weight_g: Number(intake.unit_weight_g) || 1, description: '历史单位' }]);
+  }
+
+  document.getElementById('editFoodName').textContent = intake.food_name;
+  renderEditMealSelector();
+  renderEditUnitSelector();
+  updateEditDisplay();
+
+  const modal = document.getElementById('editModal');
+  modal.classList.add('show');
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').classList.remove('show');
+  editingIntake = null;
+  editingUnits = [];
+}
+
+function renderEditMealSelector() {
+  const meals = [
+    { id: 'breakfast', name: '早餐', icon: '🌅' },
+    { id: 'lunch', name: '午餐', icon: '☀️' },
+    { id: 'dinner', name: '晚餐', icon: '🌙' },
+    { id: 'snack', name: '加餐', icon: '🍪' }
+  ];
+  document.getElementById('editMealSelector').innerHTML = meals.map(m => `
+    <div class="meal-option ${editingMeal === m.id ? 'selected' : ''}" data-meal="${m.id}" onclick="selectEditMeal('${m.id}')">
+      <span class="emoji">${m.icon}</span>
+      ${m.name}
+    </div>
+  `).join('');
+}
+
+function selectEditMeal(meal) {
+  editingMeal = meal;
+  renderEditMealSelector();
+}
+
+function renderEditUnitSelector() {
+  document.getElementById('editUnitSelector').innerHTML = editingUnits.map(u => `
+    <button class="edit-unit-btn ${editingUnit && editingUnit.name === u.name ? 'selected' : ''}" data-name="${escapeHtml(u.name)}" data-weight="${u.weight_g}" onclick="selectEditUnit(this)">
+      ${escapeHtml(u.name)} (${escapeHtml(u.description || u.weight_g + 'g')})
+    </button>
+  `).join('') + `
+    <button class="edit-unit-btn ${editingUnit && editingUnit.name === 'g' ? 'selected' : ''}" data-name="g" data-weight="1" onclick="selectEditUnit(this)">克 (g)</button>
+  `;
+}
+
+function selectEditUnit(el) {
+  editingUnit = { name: el.dataset.name, weight: Number(el.dataset.weight) };
+  renderEditUnitSelector();
+  updateEditDisplay();
+}
+
+function editChangeQty(delta) {
+  editingQty = Math.max(0.5, editingQty + delta);
+  updateEditDisplay();
+}
+
+function onEditGramsInput(input) {
+  const grams = Number(input.value);
+  if (!Number.isFinite(grams) || grams <= 0) return;
+  editingQty = Math.max(0.5, grams / editingUnit.weight);
+  updateEditDisplay(false);
+}
+
+function updateEditDisplay(updateGrams = true) {
+  document.getElementById('editQtyValue').textContent = editingQty;
+  const grams = Math.round(editingQty * editingUnit.weight);
+  const gramsInput = document.getElementById('editGramsInput');
+  if (updateGrams && gramsInput) gramsInput.value = grams;
+}
+
+async function saveEditIntake() {
+  if (!editingIntake) return;
+  const weight = editingQty * editingUnit.weight;
+  await DataService.updateIntake(editingIntake.id, {
+    quantity: editingQty,
+    unit: editingUnit.name,
+    weight,
+    meal: editingMeal
+  });
+  closeEditModal();
+  await render();
+}
+
+async function deleteEditIntake() {
+  if (!editingIntake) return;
+  if (!confirm(`确定删除 ${editingIntake.food_name} 这条记录吗？`)) return;
+  await DataService.deleteIntake(editingIntake.id);
+  closeEditModal();
+  await render();
+}
+
+async function deleteIntake(id) {
+  if (!confirm('确定删除这条记录吗？')) return;
+  await DataService.deleteIntake(id);
+  await render();
+}
+
+async function init() {
+  ({ escapeHtml, formatLocalDate, formatDisplayDate, getMealName, getMealTime, getNutrientConfig, getStatusClass, goPage } = window.App || {});
+  DataService = window.DataService;
+  await window.App.initApp();
+  switchView('overview');
+}
+
+// 从其他页面返回时刷新
+window.addEventListener('pageshow', (event) => {
+  if (event.persisted) {
+    render();
+  }
+});
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>

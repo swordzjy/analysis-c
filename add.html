@@ -9,48 +9,7 @@
 <title>母亲膳食管家 - 添加摄入</title>
 <style>
 /* 添加页特有样式 */
-.header-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.back-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--bg);
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
-.steps {
-  display: flex;
-  padding: 16px;
-  gap: 8px;
-}
-.step {
-  flex: 1;
-  text-align: center;
-  padding: 8px;
-  border-radius: 12px;
-  background: var(--card);
-  font-size: 12px;
-  color: var(--text-light);
-  border: 2px solid transparent;
-}
-.step.active {
-  border-color: var(--primary);
-  color: var(--primary);
-  font-weight: 600;
-}
-.step.done {
-  background: var(--primary-light);
-  color: var(--primary);
-}
 
 .content { padding: 0 16px 16px; }
 
@@ -77,14 +36,16 @@
   border-radius: 10px;
   padding: 10px;
 }
-.cumulative-item .value { font-size: 18px; font-weight: 700; }
-.cumulative-item .label { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+.cumulative-item .value { font-size: 20px; font-weight: 700; }
+.cumulative-item .label { font-size: 12px; opacity: 0.8; margin-top: 2px; }
 
 .selected-foods {
   background: var(--card);
   border-radius: 16px;
   padding: 16px;
   margin: 0 16px 16px;
+  box-shadow: var(--shadow);
+  border-top: 3px solid var(--primary-light);
 }
 .selected-foods h3 {
   font-size: 15px;
@@ -106,13 +67,13 @@
 .selected-food-name { font-size: 14px; font-weight: 600; }
 .selected-food-detail { font-size: 12px; color: var(--text-light); }
 .selected-food-delete {
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   border: none;
   background: #ffebee;
   color: var(--danger);
-  font-size: 16px;
+  font-size: 20px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -125,18 +86,24 @@
   gap: 12px;
   margin-bottom: 16px;
 }
+.header-title {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+}
+
 .meal-card {
   background: var(--card);
   border-radius: 16px;
-  padding: 16px;
+  padding: 20px 16px;
   text-align: center;
   cursor: pointer;
   border: 2px solid transparent;
   transition: all 0.2s;
 }
-.meal-card .emoji { font-size: 32px; margin-bottom: 8px; display: block; }
-.meal-card .name { font-size: 15px; font-weight: 600; }
-.meal-card .time { font-size: 12px; color: var(--text-light); margin-top: 4px; }
+.meal-card .emoji { font-size: 40px; margin-bottom: 8px; display: block; }
+.meal-card .name { font-size: 17px; font-weight: 600; }
+.meal-card .time { font-size: 13px; color: var(--text-light); margin-top: 4px; }
 .meal-card.selected {
   border-color: var(--primary);
   background: var(--primary-light);
@@ -151,14 +118,14 @@
 .category-card {
   background: var(--card);
   border-radius: 14px;
-  padding: 14px 8px;
+  padding: 16px 8px;
   text-align: center;
   cursor: pointer;
   border: 2px solid transparent;
   transition: all 0.2s;
 }
-.category-card .emoji { font-size: 28px; margin-bottom: 6px; display: block; }
-.category-card .name { font-size: 13px; }
+.category-card .emoji { font-size: 32px; margin-bottom: 6px; display: block; }
+.category-card .name { font-size: 14px; }
 .category-card.selected {
   border-color: var(--primary);
   background: var(--primary-light);
@@ -172,17 +139,17 @@
 .food-select-item {
   display: flex;
   align-items: center;
-  padding: 14px 16px;
+  padding: 16px;
   border-bottom: 1px solid var(--border);
   cursor: pointer;
-  gap: 12px;
+  gap: 14px;
 }
 .food-select-item:last-child { border-bottom: none; }
 .food-select-item.selected { background: var(--primary-light); }
-.food-select-item .emoji { font-size: 28px; }
+.food-select-item .emoji { font-size: 32px; }
 .food-select-info { flex: 1; }
-.food-select-name { font-size: 15px; font-weight: 600; }
-.food-select-meta { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+.food-select-name { font-size: 16px; font-weight: 600; }
+.food-select-meta { font-size: 13px; color: var(--text-light); margin-top: 2px; }
 .food-select-check {
   width: 24px;
   height: 24px;
@@ -208,9 +175,16 @@
 }
 .quantity-display { text-align: center; margin-bottom: 20px; }
 .quantity-display .food-name { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.amount-row {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
 .quantity-display .amount { font-size: 48px; font-weight: 700; color: var(--primary); line-height: 1; }
-.quantity-display .unit-label { font-size: 14px; color: var(--text-light); margin-top: 4px; }
-.quantity-display .weight-est { font-size: 13px; color: var(--text-light); margin-top: 8px; }
+.quantity-display .unit-label { font-size: 14px; color: var(--text-light); }
+.quantity-display .weight-est { font-size: 13px; color: var(--text-light); }
 
 .quantity-controls {
   display: flex;
@@ -298,15 +272,19 @@
 }
 
 .nutrient-preview {
-  background: var(--bg);
-  border-radius: 12px;
-  padding: 14px;
+  background: var(--card);
+  border-radius: 16px;
+  padding: 16px;
   margin-top: 16px;
+  border: 1px solid var(--border);
 }
 .nutrient-preview h4 {
-  font-size: 13px;
-  color: var(--text-light);
-  margin-bottom: 10px;
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 .preview-grid {
   display: grid;
@@ -315,14 +293,62 @@
 }
 .preview-item {
   text-align: center;
-  padding: 8px;
-  background: var(--card);
-  border-radius: 10px;
+  padding: 10px 6px;
+  background: var(--bg);
+  border-radius: 12px;
+  position: relative;
+  border-left: 3px solid transparent;
 }
-.preview-item .value { font-size: 16px; font-weight: 700; }
-.preview-item .label { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+.preview-item.key {
+  border-left-color: var(--primary);
+  background: #fffbf5;
+}
+.preview-item .value { font-size: 20px; font-weight: 800; }
+.preview-item .label {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.preview-item.warning {
+  background: #fff8e1;
+  border-left-color: var(--warning);
+}
 .preview-item.warning .value { color: var(--warning); }
+.preview-item.danger {
+  background: #ffebee;
+  border-left-color: var(--danger);
+}
 .preview-item.danger .value { color: var(--danger); }
+.preview-item .pct {
+  font-size: 10px;
+  color: var(--text-light);
+  margin-top: 2px;
+}
+.nutrient-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 8px;
+  line-height: 1.3;
+}
+.nutrient-badge.warning {
+  background: var(--warning);
+  color: #fff;
+}
+.nutrient-badge.danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.cumulative-item .value { transition: color 0.2s; }
+.cumulative-item.warning .value { color: #ffcc80; }
+.cumulative-item.danger .value { color: #ffcdd2; }
 
 .action-bar {
   position: fixed;
@@ -359,6 +385,30 @@
 
 .hidden { display: none !important; }
 
+.toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.95);
+  background: rgba(44, 44, 44, 0.92);
+  color: white;
+  padding: 18px 28px;
+  border-radius: 16px;
+  font-size: 15px;
+  font-weight: 500;
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  text-align: center;
+  max-width: 280px;
+  line-height: 1.5;
+}
+.toast.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
 .source-tabs {
   display: flex;
   gap: 10px;
@@ -392,22 +442,13 @@
 
 <!-- 头部 -->
 <div class="header">
-  <div class="header-row">
-    <button class="back-btn" onclick="goBack()">‹</button>
-    <div class="header-title">➕ 添加摄入</div>
-  </div>
+  <div class="header-title" id="headerTitle">请选择餐次</div>
 </div>
 
-<!-- 步骤指示 -->
-<div class="steps" id="stepIndicator">
-  <div class="step active" data-step="1">1. 餐次</div>
-  <div class="step" data-step="2">2. 食材</div>
-  <div class="step" data-step="3">3. 数量</div>
-</div>
 
 <!-- 累计显示 -->
 <div class="cumulative-banner" id="cumulativeBanner">
-  <h3>📊 本次累计摄入</h3>
+  <h3>📊 今日累计摄入</h3>
   <div class="cumulative-grid">
     <div class="cumulative-item"><div class="value" id="cumProtein">0</div><div class="label">蛋白质 g</div></div>
     <div class="cumulative-item"><div class="value" id="cumPotassium">0</div><div class="label">钾 mg</div></div>
@@ -416,12 +457,6 @@
     <div class="cumulative-item"><div class="value" id="cumCalcium">0</div><div class="label">钙 mg</div></div>
     <div class="cumulative-item"><div class="value" id="cumPurine">0</div><div class="label">嘌呤 mg</div></div>
   </div>
-</div>
-
-<!-- 已选食物 -->
-<div class="selected-foods" id="selectedFoodsSection">
-  <h3>已选食物 <span style="font-weight:400;font-size:13px;color:var(--text-light)" id="selectedCount">0 种</span></h3>
-  <div id="selectedFoodsList"></div>
 </div>
 
 <!-- 内容区 -->
@@ -453,11 +488,13 @@
     </div>
   </div>
 
-  <!-- 步骤2: 食材 -->
-  <div id="step2" class="hidden">
-    <div class="source-tabs" id="sourceTabs">
+ <!-- 步骤2: 食材 -->
+ <div id="step2" class="hidden">
+    <div class="step2-hint" id="step2Hint">👆 请点击上方食物，选择后将进入数量设置</div>
+
+   <div class="source-tabs" id="sourceTabs">
       <button class="source-tab active" data-source="recent" onclick="switchFoodSource('recent')">我的日常</button>
-      <button class="source-tab" data-source="category" onclick="switchFoodSource('category')">按分类查找</button>
+      <button class="source-tab" data-source="category" onclick="goToFoodsLibrary()">去食物库挑选</button>
     </div>
 
     <div id="recentFoodsSection">
@@ -483,9 +520,11 @@
     <div class="quantity-section">
       <div class="quantity-display">
         <div class="food-name" id="qtyFoodName">-</div>
-        <div class="amount" id="qtyAmount">1</div>
-        <div class="unit-label" id="qtyUnitLabel">-</div>
-        <div class="weight-est" id="qtyWeightEst">-</div>
+        <div class="amount-row">
+          <span class="amount" id="qtyAmount">1</span>
+          <span class="unit-label" id="qtyUnitLabel">-</span>
+          <span class="weight-est" id="qtyWeightEst">-</span>
+        </div>
     </div>
 
     <div class="grams-input-row">
@@ -514,11 +553,19 @@
 
 </div>
 
+<!-- 已选食物 -->
+<div class="selected-foods" id="selectedFoodsSection">
+  <h3>已选食物 <span style="font-weight:400;font-size:13px;color:var(--text-light)" id="selectedCount">0 种</span></h3>
+  <div id="selectedFoodsList"></div>
+</div>
+
 <!-- 底部操作 -->
 <div class="action-bar" id="actionBar">
   <button class="btn-secondary" onclick="prevStep()" id="btnBack">取消</button>
   <button class="btn-primary" onclick="nextStep()" id="btnNext">下一步</button>
 </div>
+
+<div class="toast" id="saveToast"></div>
 
 <script src="./src/db.js" defer></script>
 <script src="./src/foods_data.js" defer></script>
@@ -543,12 +590,12 @@ let recentFoods = [];
 const categoryIds = ['grain', 'beans', 'vegetable', 'fruit', 'meat', 'dairy', 'nuts'];
 
 function showStep(n) {
-  document.querySelectorAll('.step').forEach(s => {
-    const stepNum = parseInt(s.dataset.step);
-    s.classList.remove('active', 'done');
-    if (stepNum === n) s.classList.add('active');
-    else if (stepNum < n) s.classList.add('done');
-  });
+  const title = document.getElementById('headerTitle');
+  if (title) {
+    if (n === 1) title.textContent = '请选择餐次';
+    else if (n === 2) title.textContent = '请选择食材';
+    else if (n === 3) title.textContent = '请调整重量';
+  }
 
   for (let i = 1; i <= 3; i++) {
     const el = document.getElementById('step' + i);
@@ -560,22 +607,27 @@ function showStep(n) {
 }
 
 function updateButtons() {
-  const backBtn = document.getElementById('btnBack');
-  const nextBtn = document.getElementById('btnNext');
+ const backBtn = document.getElementById('btnBack');
+ const nextBtn = document.getElementById('btnNext');
+  const hint = document.getElementById('step2Hint');
 
-  if (currentStep === 1) {
-    backBtn.textContent = '取消';
-    nextBtn.textContent = '下一步';
-    nextBtn.disabled = !selectedMeal;
-  } else if (currentStep === 2) {
-    backBtn.textContent = '上一步';
-    nextBtn.textContent = '下一步';
-    nextBtn.disabled = true; // step2 通过点击食物直接进入 step3
-  } else if (currentStep === 3) {
-    backBtn.textContent = '上一步';
-    nextBtn.textContent = '✓ 确认保存';
-    nextBtn.disabled = false;
-  }
+ if (currentStep === 1) {
+   backBtn.textContent = '取消';
+    nextBtn.textContent = '下一步：选食材 →';
+   nextBtn.disabled = !selectedMeal;
+    nextBtn.classList.remove('hidden');
+    if (hint) hint.classList.add('hidden');
+ } else if (currentStep === 2) {
+   backBtn.textContent = '上一步：选餐次';
+   nextBtn.classList.add('hidden');
+   if (hint) hint.classList.remove('hidden');
+ } else if (currentStep === 3) {
+   backBtn.textContent = '上一步：选食材';
+   nextBtn.textContent = '✓ 确认保存';
+   nextBtn.disabled = false;
+    nextBtn.classList.remove('hidden');
+    if (hint) hint.classList.add('hidden');
+ }
 }
 
 async function nextStep() {
@@ -673,6 +725,12 @@ async function selectFood(el, foodId) {
   currentUnit = null;
   showStep(3);
   await initQuantity();
+}
+
+
+function goToFoodsLibrary() {
+  sessionStorage.setItem('selectMeal', selectedMeal || '');
+  goPage('foods.html?select=1');
 }
 
 async function switchFoodSource(source) {
@@ -788,7 +846,7 @@ function onGramsInput(input) {
   currentQty = Math.max(0.5, grams / currentUnit.weight);
   document.getElementById('qtyAmount').textContent = currentQty;
   document.getElementById('qtyUnitLabel').textContent = `${escapeHtml(currentUnit.name)} (约${currentUnit.weight}g)`;
-  document.getElementById('qtyWeightEst').textContent = `≈ ${Math.round(grams)}g`;
+  document.getElementById('qtyWeightEst').textContent = `${Math.round(grams)}g`;
   updateQtyPreview();
 }
 
@@ -796,7 +854,7 @@ function updateQtyDisplay() {
   document.getElementById('qtyAmount').textContent = currentQty;
   document.getElementById('qtyUnitLabel').textContent = `${escapeHtml(currentUnit.name)} (约${currentUnit.weight}g)`;
   const totalWeight = currentQty * currentUnit.weight;
-  document.getElementById('qtyWeightEst').textContent = `≈ ${Math.round(totalWeight)}g`;
+  document.getElementById('qtyWeightEst').textContent = `${Math.round(totalWeight)}g`;
   const gramsInput = document.getElementById('gramsInput');
   if (gramsInput) gramsInput.value = Math.round(totalWeight);
 }
@@ -805,26 +863,33 @@ function updateQtyPreview() {
   const weight = currentQty * currentUnit.weight;
   const nutrients = window.App.calcNutrients(selectedFood, weight);
 
-  const keys = [
-    { key: 'protein', name: '蛋白质', unit: 'g' },
-    { key: 'potassium', name: '钾', unit: 'mg' },
-    { key: 'phosphorus', name: '磷', unit: 'mg' },
-    { key: 'calcium', name: '钙', unit: 'mg' },
-    { key: 'oxalate', name: '草酸', unit: 'mg' },
-    { key: 'purine', name: '嘌呤', unit: 'mg' }
-  ];
+  const keyOrder = ['protein', 'potassium', 'phosphorus', 'calcium', 'oxalate', 'purine'];
+  const keySet = new Set(['potassium', 'phosphorus', 'oxalate', 'purine']);
 
-  document.getElementById('qtyPreviewGrid').innerHTML = keys.map(n => {
-    const value = nutrients[n.key];
-    const limit = currentLimits[n.key];
+  document.getElementById('qtyPreviewGrid').innerHTML = keyOrder.map(key => {
+    const cfg = nutrientConfig[key];
+    const value = nutrients[key] || 0;
+    const limit = cfg ? cfg.limit : 0;
     const pct = limit > 0 ? (value / limit) * 100 : 0;
+
     let status = '';
-    if (pct > 100) status = 'danger';
-    else if (pct > 50) status = 'warning';
+    let badge = '';
+    if (pct > 100) {
+      status = 'danger';
+      badge = `<span class="nutrient-badge danger">高${escapeHtml(cfg.name)}</span>`;
+    } else if (pct >= 50) {
+      status = 'warning';
+      badge = `<span class="nutrient-badge warning">${escapeHtml(cfg.name)}偏高</span>`;
+    }
+
+    const isKey = keySet.has(key);
+    const pctText = limit > 0 ? `<div class="pct">占每日 ${pct.toFixed(0)}%</div>` : '';
+
     return `
-      <div class="preview-item ${status}">
-        <div class="value">${value.toFixed(1)}</div>
-        <div class="label">${escapeHtml(n.name)}${escapeHtml(n.unit)}</div>
+      <div class="preview-item ${isKey ? 'key' : ''} ${status}">
+        <div class="value">${value.toFixed(key === 'protein' ? 1 : 0)}</div>
+        <div class="label">${escapeHtml(cfg.icon)} ${escapeHtml(cfg.name)}${escapeHtml(cfg.unit)}${badge}</div>
+        ${pctText}
       </div>
     `;
   }).join('');
@@ -833,39 +898,60 @@ function updateQtyPreview() {
 async function saveAndFinish() {
   const weight = currentQty * currentUnit.weight;
 
-  const id = await DataService.addIntake({
-    date: formatLocalDate(new Date()),
-    meal: selectedMeal,
-    foodId: selectedFood.id,
-    quantity: currentQty,
-    unit: currentUnit.name,
-    weight
-  });
+  try {
+    const id = await DataService.addIntake({
+      date: formatLocalDate(new Date()),
+      meal: selectedMeal,
+      foodId: selectedFood.id,
+      quantity: currentQty,
+      unit: currentUnit.name,
+      weight
+    });
 
-  sessionFoods.push({
-    dbId: id,
-    food: selectedFood,
-    qty: currentQty,
-    unit: currentUnit,
-    weight,
-    nutrients: window.App.calcNutrients(selectedFood, weight)
-  });
+    sessionFoods.push({
+      dbId: id,
+      food: selectedFood,
+      qty: currentQty,
+      unit: currentUnit,
+      weight,
+      nutrients: window.App.calcNutrients(selectedFood, weight)
+    });
 
-  // 重置食材选择，保留餐次，方便继续添加
-  selectedFood = null;
-  selectedCategory = null;
-  currentQty = 1;
-  currentUnit = null;
+    const savedName = selectedFood.name;
+    const savedQty = currentQty;
+    const savedUnitName = currentUnit.name;
+    const savedWeight = Math.round(weight);
 
-  document.querySelectorAll('.category-card').forEach(c => c.classList.remove('selected'));
-  document.querySelectorAll('.food-select-item').forEach(item => item.classList.remove('selected'));
+    // 重置食材选择，保留餐次，方便继续添加
+    selectedFood = null;
+    selectedCategory = null;
+    currentQty = 1;
+    currentUnit = null;
 
-  updateCumulative();
-  renderSelectedFoods();
+    document.querySelectorAll('.category-card').forEach(c => c.classList.remove('selected'));
+    document.querySelectorAll('.food-select-item').forEach(item => item.classList.remove('selected'));
 
-  // 回到我的日常，继续添加同餐次的其他食物
-  showStep(2);
-  await switchFoodSource('recent');
+    updateCumulative();
+    renderSelectedFoods();
+
+    showToast(`已记录：${savedName} ${savedQty}${savedUnitName}（约${savedWeight}g）`);
+
+    // 回到我的日常，继续添加同餐次的其他食物
+    showStep(2);
+    await switchFoodSource('recent');
+  } catch (err) {
+    console.error('保存摄入记录失败:', err);
+    showToast(`保存失败：${err.message || '请稍后重试'}`);
+  }
+}
+
+function showToast(message) {
+  const toast = document.getElementById('saveToast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  setTimeout(() => {
+    toast.classList.remove('show');
+  }, 1800);
 }
 
 function updateCumulative() {
@@ -879,12 +965,28 @@ function updateCumulative() {
     return sum;
   }, { protein: 0, potassium: 0, phosphorus: 0, calcium: 0, oxalate: 0, purine: 0 });
 
-  document.getElementById('cumProtein').textContent = totals.protein.toFixed(1);
-  document.getElementById('cumPotassium').textContent = Math.round(totals.potassium);
-  document.getElementById('cumOxalate').textContent = Math.round(totals.oxalate);
-  document.getElementById('cumPhosphorus').textContent = Math.round(totals.phosphorus);
-  document.getElementById('cumCalcium').textContent = Math.round(totals.calcium);
-  document.getElementById('cumPurine').textContent = Math.round(totals.purine);
+  const items = [
+    { id: 'cumProtein', key: 'protein', decimals: 1 },
+    { id: 'cumPotassium', key: 'potassium', decimals: 0 },
+    { id: 'cumOxalate', key: 'oxalate', decimals: 0 },
+    { id: 'cumPhosphorus', key: 'phosphorus', decimals: 0 },
+    { id: 'cumCalcium', key: 'calcium', decimals: 0 },
+    { id: 'cumPurine', key: 'purine', decimals: 0 }
+  ];
+
+  for (const item of items) {
+    const valueEl = document.getElementById(item.id);
+    const wrapper = valueEl.closest('.cumulative-item');
+    const value = totals[item.key];
+    const limit = (nutrientConfig[item.key] || {}).limit || 0;
+    const pct = limit > 0 ? (value / limit) * 100 : 0;
+
+    wrapper.classList.remove('warning', 'danger');
+    if (pct > 100) wrapper.classList.add('danger');
+    else if (pct >= 50) wrapper.classList.add('warning');
+
+    valueEl.textContent = item.decimals ? value.toFixed(item.decimals) : Math.round(value);
+  }
 }
 
 function renderSelectedFoods() {
@@ -925,11 +1027,57 @@ async function init() {
   } = window.App || {});
   DataService = window.DataService;
   await window.App.initApp();
-  currentLimits = await DataService.getUserLimits();
-  nutrientConfig = getNutrientConfig(currentLimits);
-  updateCumulative();
-  renderSelectedFoods();
-  updateButtons();
+ currentLimits = await DataService.getUserLimits();
+nutrientConfig = getNutrientConfig(currentLimits);
+
+  // 恢复从食物库返回时保存的餐次选择
+  const storedMeal = sessionStorage.getItem('selectMeal');
+  if (storedMeal) {
+    sessionStorage.removeItem('selectMeal');
+    selectedMeal = storedMeal;
+    document.querySelectorAll('.meal-card').forEach(c => {
+      if (c.dataset.meal === storedMeal) c.classList.add('selected');
+    });
+  }
+
+  // 检查是否从食物库返回（选食模式）
+  const storedFoodId = sessionStorage.getItem('selectedFoodId');
+  if (storedFoodId) {
+    sessionStorage.removeItem('selectedFoodId');
+    try {
+      selectedFood = await DataService.getFoodById(storedFoodId);
+      if (selectedFood) {
+        currentQty = 1;
+        currentUnit = null;
+        showStep(3);
+        await initQuantity();
+        return;
+      }
+    } catch (e) { console.error('Load selected food failed:', e); }
+  }
+
+
+  // 加载今日已保存的摄入记录，支持一天内多次添加的累计显示
+  try {
+    const todayDate = formatLocalDate(new Date());
+    const todayIntakes = await DataService.getDailyIntakes(todayDate);
+    if (todayIntakes && todayIntakes.length > 0) {
+      sessionFoods = todayIntakes.map(intake => ({
+        dbId: intake.id,
+        food: { id: intake.food_id, name: intake.food_name, emoji: intake.emoji || '🍽️' },
+        qty: Number(intake.quantity) || 1,
+        unit: { name: intake.unit, weight: Number(intake.unit_weight_g) || 1 },
+        weight: Number(intake.actual_grams) || 0,
+        nutrients: intake.nutrients || {}
+      }));
+    }
+  } catch (err) {
+    console.error('加载今日记录失败:', err);
+  }
+
+updateCumulative();
+ renderSelectedFoods();
+ updateButtons();
 }
 
 document.addEventListener('DOMContentLoaded', init);
@@ -937,3 +1085,12 @@ document.addEventListener('DOMContentLoaded', init);
 
 </body>
 </html>
+.step2-hint {
+  text-align: center;
+  color: var(--text-light);
+  font-size: 13px;
+  padding: 12px 0;
+  background: var(--primary-light);
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
