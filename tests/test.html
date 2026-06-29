@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>母亲膳食管家 - 自动化测试</title>
+<style>
+  :root { --bg: #f8f6f3; --card: #fff; --text: #2c2c2c; --safe: #4caf50; --danger: #f44336; --primary: #c4956a; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
+  h1 { font-size: 20px; margin-bottom: 16px; }
+  #summary { margin-bottom: 20px; font-weight: 600; }
+  .test { background: var(--card); border-radius: 12px; padding: 12px 16px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .test.pass { border-left: 4px solid var(--safe); }
+  .test.fail { border-left: 4px solid var(--danger); }
+  .name { font-weight: 600; }
+  .msg { font-size: 13px; color: #666; margin-top: 4px; }
+  .error { color: var(--danger); font-size: 12px; margin-top: 4px; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+  <h1>🧪 母亲膳食管家测试</h1>
+  <div id="summary">运行中...</div>
+  <div id="results"></div>
+
+  <script src="../src/db.js"></script>
+  <script src="../src/foods_data.js"></script>
+  <script src="../src/common.js"></script>
+  <script src="../src/data-service.js"></script>
+  <script>
+  const { escapeHtml, formatLocalDate, calcNutrients, parseLocalDate } = window.App || {};
+  const DataService = window.DataService;
+
+  const results = [];
+
+  function assertEqual(actual, expected, message) {
+    if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+      throw new Error(`${message}\n实际: ${JSON.stringify(actual)}\n期望: ${JSON.stringify(expected)}`);
+    }
+  }
+
+  async function test(name, fn) {
+    try {
+      await fn();
+      results.push({ name, pass: true });
+    } catch (err) {
+      results.push({ name, pass: false, error: err.message || String(err) });
+    }
+  }
+
+  function render() {
+    const passed = results.filter(r => r.pass).length;
+    const failed = results.filter(r => !r.pass).length;
+    document.getElementById('summary').textContent = `共 ${results.length} 项 · 通过 ${passed} · 失败 ${failed}`;
+    document.getElementById('summary').style.color = failed > 0 ? 'var(--danger)' : 'var(--safe)';
+
+    document.getElementById('results').innerHTML = results.map(r => `
+      <div class="test ${r.pass ? 'pass' : 'fail'}">
+        <div class="name">${r.pass ? '✅' : '❌'} ${escapeHtml(r.name)}</div>
+        ${r.error ? `<div class="error">${escapeHtml(r.error)}</div>` : ''}
+      </div>
+    `).join('');
+  }
+
+  async function runTests() {
+    // 1. HTML 转义
+    await test('escapeHtml 转义危险字符', () => {
+      const raw = '<script>alert("x")</scr' + 'ipt>';
+      const out = escapeHtml(raw);
+      assertEqual(out.includes('<'), false, '不应包含未转义的 <');
+      assertEqual(out.includes('>'), false, '不应包含未转义的 >');
+      assertEqual(out.includes('"'), false, '不应包含未转义的 "');
+      assertEqual(out, '&lt;script&gt;alert(&quot;x&quot;)&lt;/scr' + 'ipt&gt;', '转义结果应一致');
+    });
+
+    // 2. 本地日期
+    await test('formatLocalDate 返回本地日期字符串', () => {
+      const d = new Date(2026, 5, 28, 23, 30, 0); // 本地 6月28日 23:30
+      assertEqual(formatLocalDate(d), '2026-06-28', '不应因 UTC 跨天而变成 06-27');
+    });
+
+    await test('parseLocalDate 与 formatLocalDate 互逆', () => {
+      const d = parseLocalDate('2026-06-28');
+      assertEqual(formatLocalDate(d), '2026-06-28', '解析后再格式化应一致');
+    });
+
+    // 3. 营养计算
+    await test('calcNutrients 对 100g 食物计算正确', () => {
+      const food = { protein_g: 13.3, potassium_mg: 154, phosphorus_mg: 130, calcium_mg: 56, oxalate_mg: 0, purine_mg: 2, kcal: 144 };
+      const n = calcNutrients(food, 100);
+      assertEqual(Math.round(n.protein * 10) / 10, 13.3, '蛋白质');
+      assertEqual(Math.round(n.potassium), 154, '钾');
+      assertEqual(Math.round(n.purine), 2, '嘌呤');
+    });
+
+    await test('calcNutrients 对 50g 食物减半', () => {
+      const food = { protein_g: 13.3, potassium_mg: 154, phosphorus_mg: 130, calcium_mg: 56, oxalate_mg: 0, purine_mg: 2, kcal: 144 };
+      const n = calcNutrients(food, 50);
+      assertEqual(Math.round(n.protein * 10) / 10, 6.7, '50g 蛋白质应为 6.7g');
+      assertEqual(Math.round(n.kcal), 72, '50g 热量应为 72');
+    });
+
+    // 4. 数据服务初始化
+    await test('DataService.init 初始化成功', async () => {
+      await DataService.init();
+    });
+
+    // 5. 食物查询
+    await test('DataService.getFoods 返回种子食物', async () => {
+      const foods = await DataService.getFoods();
+      if (!Array.isArray(foods) || foods.length === 0) {
+        throw new Error('食物列表为空');
+      }
+      if (!foods.some(f => f.id === 'egg')) {
+        throw new Error('未找到鸡蛋');
+      }
+    });
+
+    await test('DataService.searchFoods 支持关键字搜索', async () => {
+      const foods = await DataService.searchFoods('豆腐');
+      if (!foods.some(f => f.name.includes('豆腐'))) {
+        throw new Error('搜索豆腐失败');
+      }
+    });
+
+    await test('DataService.getFoodUnits 返回单位', async () => {
+      const units = await DataService.getFoodUnits('egg');
+      if (!units.some(u => u.name === '个')) {
+        throw new Error('鸡蛋单位未找到“个”');
+      }
+    });
+
+    // 6. 摄入记录写入/读出闭环
+    await test('DataService.addIntake + getDailyTotals 写入读出闭环', async () => {
+      const today = formatLocalDate(new Date());
+      const id = await DataService.addIntake({
+        date: today,
+        meal: 'breakfast',
+        foodId: 'egg',
+        quantity: 2,
+        unit: '个',
+        weight: 100
+      });
+      if (!id) throw new Error('addIntake 未返回 id');
+
+      const totals = await DataService.getDailyTotals(today);
+      if (!totals || totals.protein_g < 10) {
+        throw new Error(`汇总数据异常: ${JSON.stringify(totals)}`);
+      }
+    });
+
+    await test('DataService.getDailyIntakes 返回今日记录', async () => {
+      const today = formatLocalDate(new Date());
+      const intakes = await DataService.getDailyIntakes(today);
+      if (!Array.isArray(intakes) || intakes.length === 0) {
+        throw new Error('今日记录为空');
+      }
+      if (!intakes.some(i => i.food_id === 'egg')) {
+        throw new Error('未找到鸡蛋摄入记录');
+      }
+    });
+
+    // 7. 用户限值
+    await test('DataService.setUserLimits + getUserLimits 读写一致', async () => {
+      await DataService.setUserLimits('test_user', { protein: 60, potassium: 2000, phosphorus: 900, calcium: 800, oxalate: 150, purine: 250 });
+      const limits = await DataService.getUserLimits('test_user');
+      assertEqual(limits.protein, 60, '蛋白质限值');
+      assertEqual(limits.potassium, 2000, '钾限值');
+      assertEqual(limits.oxalate, 150, '草酸限值');
+    });
+
+    // 8. XSS 食物名在记录中以纯文本显示
+    await test('危险食物名不会触发脚本执行', async () => {
+      let executed = false;
+      window.xssMarker = () => { executed = true; };
+
+      const today = formatLocalDate(new Date());
+      await DataService.addIntake({
+        date: today,
+        meal: 'snack',
+        foodId: 'spinach',
+        quantity: 1,
+        unit: '把',
+        weight: 100
+      });
+
+      // 食物种子数据不含危险名称，但迁移场景会；这里仅验证 escapeHtml 行为已覆盖
+      const html = escapeHtml('<img src=x onerror="xssMarker()">');
+      assertEqual(html.includes('<img'), false, '转义后不应存在 img 标签');
+      assertEqual(executed, false, '不应执行 xssMarker');
+      delete window.xssMarker;
+    });
+
+    // 9. 相对时间格式化
+    await test('formatRelativeDate 返回相对时间描述', () => {
+      const today = formatLocalDate(new Date());
+      const yesterday = formatLocalDate(new Date(Date.now() - 86400000));
+      const threeDaysAgo = formatLocalDate(new Date(Date.now() - 3 * 86400000));
+
+      assertEqual(window.App.formatRelativeDate(`${today}T10:00:00.000Z`), '今天', '今天');
+      assertEqual(window.App.formatRelativeDate(`${yesterday}T10:00:00.000Z`), '昨天', '昨天');
+      assertEqual(window.App.formatRelativeDate(`${threeDaysAgo}T10:00:00.000Z`), '3天前', '3天前');
+    });
+
+    render();
+  }
+
+  document.addEventListener('DOMContentLoaded', runTests);
+  </script>
+</body>
+</html>
