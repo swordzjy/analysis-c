@@ -1,527 +1,453 @@
-{
+// CFCT Reference - 75 foods
+window.CFCT_REFERENCE={
   "rice_white": {
     "protein_g": 2.7,
-    "potassium_mg": 2,
-    "phosphorus_mg": 20,
-    "calcium_mg": 293,
-    "_name": "大米"
+    "potassium_mg": 112,
+    "phosphorus_mg": 112,
+    "calcium_mg": 8
   },
   "wheat_flour": {
     "protein_g": 10.3,
     "potassium_mg": 185,
     "phosphorus_mg": 136,
-    "calcium_mg": 28,
-    "_name": "小麦面粉"
+    "calcium_mg": 28
   },
   "corn": {
-    "protein_g": 0.14,
+    "protein_g": 3.2,
     "potassium_mg": 270,
     "phosphorus_mg": 89,
-    "calcium_mg": 2,
-    "_name": "玉米"
+    "calcium_mg": 2
   },
   "millet": {
-    "protein_g": 803.0,
+    "protein_g": 9.0,
     "potassium_mg": 176,
     "phosphorus_mg": 1166,
-    "calcium_mg": 392,
-    "_name": "小米"
+    "calcium_mg": 392
   },
   "corn_fresh": {
     "protein_g": 4.0,
     "potassium_mg": 238,
     "phosphorus_mg": 117,
-    "calcium_mg": 2,
-    "_name": "玉米（鲜）"
+    "calcium_mg": 2
   },
   "black_rice": {
     "protein_g": 9.4,
     "potassium_mg": 256,
     "phosphorus_mg": 356,
-    "calcium_mg": 12,
-    "_name": "黑米"
+    "calcium_mg": 12
   },
   "buckwheat": {
-    "protein_g": 0.83,
-    "potassium_mg": 320,
-    "phosphorus_mg": 244,
-    "calcium_mg": 39,
-    "_name": "荞麦"
+    "protein_g": 9.3,
+    "potassium_mg": 401,
+    "phosphorus_mg": 297,
+    "calcium_mg": 47
   },
   "brown_rice": {
-    "protein_g": 0.23,
+    "protein_g": 7.7,
     "potassium_mg": 230,
     "phosphorus_mg": 304,
-    "calcium_mg": 10,
-    "_name": "糙米"
+    "calcium_mg": 10
   },
   "jobstears": {
-    "protein_g": 233.0,
+    "protein_g": 12.8,
     "potassium_mg": 238,
     "phosphorus_mg": 217,
-    "calcium_mg": 42,
-    "_name": "薏米"
+    "calcium_mg": 42
   },
   "soybean": {
-    "protein_g": 9.1,
+    "protein_g": 35.1,
     "potassium_mg": 1797,
     "phosphorus_mg": 704,
-    "calcium_mg": 277,
-    "_name": "黄豆"
+    "calcium_mg": 277
   },
   "tofu_north": {
     "protein_g": 8.1,
     "potassium_mg": 106,
     "phosphorus_mg": 118,
-    "calcium_mg": 138,
-    "_name": "豆腐（北）"
+    "calcium_mg": 138
   },
   "tofu_firm": {
     "protein_g": 8.1,
-    "potassium_mg": 107,
-    "phosphorus_mg": 5,
-    "calcium_mg": 18,
-    "_name": "老豆腐"
+    "potassium_mg": 125,
+    "phosphorus_mg": 119,
+    "calcium_mg": 164
   },
   "tofu_soft": {
     "protein_g": 5.3,
     "potassium_mg": 110,
     "phosphorus_mg": 81,
-    "calcium_mg": 110,
-    "_name": "嫩豆腐"
+    "calcium_mg": 110
   },
   "tofu_dried": {
     "protein_g": 16.2,
-    "potassium_mg": 137,
-    "phosphorus_mg": 174,
-    "calcium_mg": 447,
-    "_name": "豆腐干"
+    "potassium_mg": 166,
+    "phosphorus_mg": 243,
+    "calcium_mg": 308
   },
   "soy_milk": {
     "protein_g": 1.8,
-    "potassium_mg": 771,
-    "phosphorus_mg": 253,
-    "calcium_mg": 101,
-    "_name": "豆浆"
+    "potassium_mg": 48,
+    "phosphorus_mg": 30,
+    "calcium_mg": 10
   },
   "tofu_skin": {
     "protein_g": 44.6,
     "potassium_mg": 553,
-    "phosphorus_mg": 284,
-    "calcium_mg": 77,
-    "_name": "腐竹"
+    "phosphorus_mg": 318,
+    "calcium_mg": 77
   },
   "fermented_tofu": {
     "protein_g": 9.9,
     "potassium_mg": 120,
     "phosphorus_mg": 130,
-    "calcium_mg": 100,
-    "_name": "豆腐乳"
+    "calcium_mg": 100
   },
   "spinach": {
-    "protein_g": 134.0,
+    "protein_g": 2.9,
     "potassium_mg": 311,
     "phosphorus_mg": 47,
-    "calcium_mg": 66,
-    "_name": "菠菜"
+    "calcium_mg": 66
   },
   "potato": {
-    "protein_g": 0.1,
+    "protein_g": 2.0,
     "potassium_mg": 347,
     "phosphorus_mg": 46,
-    "calcium_mg": 7,
-    "_name": "土豆"
+    "calcium_mg": 7
   },
   "tomato": {
     "protein_g": 0.9,
     "potassium_mg": 197,
     "phosphorus_mg": 22,
-    "calcium_mg": 31,
-    "_name": "西红柿"
+    "calcium_mg": 31
   },
   "carrot": {
-    "protein_g": 57.0,
+    "protein_g": 0.9,
     "potassium_mg": 190,
     "phosphorus_mg": 27,
-    "calcium_mg": 32,
-    "_name": "胡萝卜"
+    "calcium_mg": 32
   },
   "cucumber": {
-    "protein_g": 23.0,
+    "protein_g": 0.7,
     "potassium_mg": 102,
     "phosphorus_mg": 24,
-    "calcium_mg": 24,
-    "_name": "黄瓜"
+    "calcium_mg": 24
   },
   "sweet_potato": {
-    "protein_g": 46.0,
+    "protein_g": 1.1,
     "potassium_mg": 88,
     "phosphorus_mg": 26,
-    "calcium_mg": 18,
-    "_name": "红薯"
+    "calcium_mg": 18
   },
   "chinese_yam": {
-    "protein_g": 83.0,
+    "protein_g": 1.9,
     "potassium_mg": 213,
     "phosphorus_mg": 34,
-    "calcium_mg": 16,
-    "_name": "山药"
+    "calcium_mg": 16
   },
   "taro": {
-    "protein_g": 115.0,
+    "protein_g": 2.2,
     "potassium_mg": 25,
     "phosphorus_mg": 50,
-    "calcium_mg": 11,
-    "_name": "芋头"
+    "calcium_mg": 11
   },
   "purple_potato": {
     "protein_g": 1.3,
     "potassium_mg": 350,
     "phosphorus_mg": 45,
-    "calcium_mg": 28,
-    "_name": "紫薯"
+    "calcium_mg": 28
   },
   "lotus_root": {
-    "protein_g": 81.0,
+    "protein_g": 1.9,
     "potassium_mg": 293,
     "phosphorus_mg": 45,
-    "calcium_mg": 18,
-    "_name": "莲藕"
+    "calcium_mg": 18
   },
   "winter_melon": {
-    "protein_g": 8.0,
+    "protein_g": 0.3,
     "potassium_mg": 11,
     "phosphorus_mg": 17,
-    "calcium_mg": 12,
-    "_name": "冬瓜"
+    "calcium_mg": 12
   },
   "celery": {
-    "protein_g": 0.34,
+    "protein_g": 0.7,
     "potassium_mg": 206,
     "phosphorus_mg": 38,
-    "calcium_mg": 80,
-    "_name": "芹菜"
+    "calcium_mg": 80
   },
   "chinese_chives": {
-    "protein_g": 128.0,
+    "protein_g": 2.4,
     "potassium_mg": 90,
     "phosphorus_mg": 82,
-    "calcium_mg": 28,
-    "_name": "韭菜"
+    "calcium_mg": 28
   },
   "lettuce": {
-    "protein_g": 1.6,
+    "protein_g": 1.3,
     "potassium_mg": 170,
     "phosphorus_mg": 27,
-    "calcium_mg": 36,
-    "_name": "生菜"
+    "calcium_mg": 36
   },
   "bok_choy": {
     "protein_g": 1.8,
     "potassium_mg": 143,
     "phosphorus_mg": 34,
-    "calcium_mg": 191,
-    "_name": "油菜"
+    "calcium_mg": 191
   },
   "green_pepper": {
     "protein_g": 1.0,
     "potassium_mg": 175,
     "phosphorus_mg": 22,
-    "calcium_mg": 10,
-    "_name": "青椒"
+    "calcium_mg": 10
   },
   "bean_sprouts": {
     "protein_g": 3.0,
     "potassium_mg": 189,
     "phosphorus_mg": 248,
-    "calcium_mg": 191,
-    "_name": "豆芽"
+    "calcium_mg": 191
   },
   "onion": {
-    "protein_g": 33.0,
+    "protein_g": 1.1,
     "potassium_mg": 147,
     "phosphorus_mg": 39,
-    "calcium_mg": 24,
-    "_name": "洋葱"
+    "calcium_mg": 24
   },
   "cauliflower": {
-    "protein_g": 6.5,
-    "potassium_mg": 554,
-    "phosphorus_mg": 182,
-    "calcium_mg": 185,
-    "_name": "菜花"
+    "protein_g": 2.1,
+    "potassium_mg": 200,
+    "phosphorus_mg": 47,
+    "calcium_mg": 23
   },
   "mushroom_shiitake": {
-    "protein_g": 0.2,
+    "protein_g": 2.2,
     "potassium_mg": 20,
     "phosphorus_mg": 53,
-    "calcium_mg": 2,
-    "_name": "香菇"
+    "calcium_mg": 2
   },
   "wood_ear": {
-    "protein_g": 0.27,
-    "potassium_mg": 140,
-    "phosphorus_mg": 42,
-    "calcium_mg": 166,
-    "_name": "木耳"
+    "protein_g": 1.5,
+    "potassium_mg": 141,
+    "phosphorus_mg": 209,
+    "calcium_mg": 167
   },
   "kelp": {
     "protein_g": 1.2,
     "potassium_mg": 246,
     "phosphorus_mg": 22,
-    "calcium_mg": 46,
-    "_name": "海带"
+    "calcium_mg": 46
   },
   "nori": {
     "protein_g": 26.7,
-    "potassium_mg": 26,
-    "phosphorus_mg": 32,
-    "calcium_mg": 16,
-    "_name": "紫菜"
+    "potassium_mg": 11,
+    "phosphorus_mg": 7,
+    "calcium_mg": 100
   },
   "okra": {
     "protein_g": 2.0,
     "potassium_mg": 19,
     "phosphorus_mg": 41,
-    "calcium_mg": 101,
-    "_name": "秋葵"
+    "calcium_mg": 101
   },
   "apple": {
-    "protein_g": 14.0,
+    "protein_g": 0.3,
     "potassium_mg": 9,
     "phosphorus_mg": 21,
-    "calcium_mg": 11,
-    "_name": "苹果"
+    "calcium_mg": 11
   },
   "banana": {
-    "protein_g": 18.0,
-    "potassium_mg": 20,
-    "phosphorus_mg": 24,
-    "calcium_mg": 18,
-    "_name": "香蕉"
+    "protein_g": 1.1,
+    "potassium_mg": 358,
+    "phosphorus_mg": 22,
+    "calcium_mg": 5
   },
   "orange": {
     "protein_g": 0.9,
     "potassium_mg": 181,
     "phosphorus_mg": 14,
-    "calcium_mg": 40,
-    "_name": "橙子"
+    "calcium_mg": 40
   },
   "grape": {
-    "protein_g": 18.0,
+    "protein_g": 0.7,
     "potassium_mg": 127,
     "phosphorus_mg": 13,
-    "calcium_mg": 9,
-    "_name": "葡萄"
+    "calcium_mg": 9
   },
   "watermelon": {
-    "protein_g": 15.0,
+    "protein_g": 0.6,
     "potassium_mg": 18,
     "phosphorus_mg": 18,
-    "calcium_mg": 18,
-    "_name": "西瓜"
+    "calcium_mg": 18
   },
   "pear": {
     "protein_g": 0.4,
-    "potassium_mg": 76,
-    "phosphorus_mg": 18,
-    "calcium_mg": 17,
-    "_name": "梨"
+    "potassium_mg": 6,
+    "phosphorus_mg": 7,
+    "calcium_mg": 6
   },
   "strawberry": {
-    "protein_g": 51.0,
+    "protein_g": 0.7,
     "potassium_mg": 31,
     "phosphorus_mg": 45,
-    "calcium_mg": 24,
-    "_name": "草莓"
+    "calcium_mg": 24
   },
   "kiwi": {
-    "protein_g": 40.0,
+    "protein_g": 1.1,
     "potassium_mg": 144,
     "phosphorus_mg": 26,
-    "calcium_mg": 27,
-    "_name": "猕猴桃"
+    "calcium_mg": 27
   },
   "peach": {
     "protein_g": 0.9,
     "potassium_mg": 190,
     "phosphorus_mg": 20,
-    "calcium_mg": 6,
-    "_name": "桃子"
+    "calcium_mg": 6
   },
   "mango": {
-    "protein_g": 60.0,
+    "protein_g": 0.8,
     "potassium_mg": 28,
     "phosphorus_mg": 30,
-    "calcium_mg": 20,
-    "_name": "芒果"
+    "calcium_mg": 20
   },
   "pomelo": {
     "protein_g": 0.8,
     "potassium_mg": 216,
     "phosphorus_mg": 17,
-    "calcium_mg": 21,
-    "_name": "柚子"
+    "calcium_mg": 21
   },
   "cherry": {
-    "protein_g": 0.1,
+    "protein_g": 1.1,
     "potassium_mg": 222,
     "phosphorus_mg": 21,
-    "calcium_mg": 13,
-    "_name": "樱桃"
+    "calcium_mg": 13
   },
   "pork_tenderloin": {
     "protein_g": 20.8,
     "potassium_mg": 370,
     "phosphorus_mg": 220,
-    "calcium_mg": 5,
-    "_name": "猪里脊"
+    "calcium_mg": 5
   },
   "chicken_breast": {
     "protein_g": 23.1,
     "potassium_mg": 256,
     "phosphorus_mg": 200,
-    "calcium_mg": 5,
-    "_name": "鸡胸肉"
+    "calcium_mg": 5
   },
   "egg": {
     "protein_g": 12.6,
-    "potassium_mg": 529,
-    "phosphorus_mg": 140,
-    "calcium_mg": 12,
-    "_name": "鸡蛋"
+    "potassium_mg": 126,
+    "phosphorus_mg": 172,
+    "calcium_mg": 50
   },
   "chicken_thigh": {
     "protein_g": 19.3,
     "potassium_mg": 240,
     "phosphorus_mg": 180,
-    "calcium_mg": 5,
-    "_name": "鸡腿肉"
+    "calcium_mg": 5
   },
   "duck": {
     "protein_g": 15.5,
     "potassium_mg": 191,
     "phosphorus_mg": 122,
-    "calcium_mg": 6,
-    "_name": "鸭肉"
+    "calcium_mg": 6
   },
   "pork_liver": {
     "protein_g": 19.3,
     "potassium_mg": 273,
     "phosphorus_mg": 310,
-    "calcium_mg": 7,
-    "_name": "猪肝"
+    "calcium_mg": 7
   },
   "pork_lean": {
     "protein_g": 20.3,
     "potassium_mg": 305,
     "phosphorus_mg": 189,
-    "calcium_mg": 6,
-    "_name": "猪瘦肉"
+    "calcium_mg": 6
   },
   "beef": {
     "protein_g": 20.2,
     "potassium_mg": 284,
     "phosphorus_mg": 168,
-    "calcium_mg": 9,
-    "_name": "牛肉"
+    "calcium_mg": 9
   },
   "lamb": {
     "protein_g": 19.0,
     "potassium_mg": 232,
     "phosphorus_mg": 146,
-    "calcium_mg": 6,
-    "_name": "羊肉"
+    "calcium_mg": 6
   },
   "crucian_carp": {
     "protein_g": 17.1,
     "potassium_mg": 290,
     "phosphorus_mg": 193,
-    "calcium_mg": 79,
-    "_name": "鲫鱼"
+    "calcium_mg": 79
   },
   "salmon": {
     "protein_g": 20.4,
     "potassium_mg": 363,
     "phosphorus_mg": 240,
-    "calcium_mg": 12,
-    "_name": "三文鱼"
+    "calcium_mg": 12
   },
   "shrimp": {
     "protein_g": 20.3,
     "potassium_mg": 264,
     "phosphorus_mg": 252,
-    "calcium_mg": 78,
-    "_name": "虾仁"
+    "calcium_mg": 78
   },
   "hairtail": {
     "protein_g": 17.7,
     "potassium_mg": 280,
     "phosphorus_mg": 191,
-    "calcium_mg": 28,
-    "_name": "带鱼"
+    "calcium_mg": 28
   },
   "egg_yolk": {
     "protein_g": 15.2,
     "potassium_mg": 109,
     "phosphorus_mg": 390,
-    "calcium_mg": 124,
-    "_name": "鸡蛋黄"
+    "calcium_mg": 124
   },
   "quail_egg": {
     "protein_g": 12.8,
     "potassium_mg": 138,
     "phosphorus_mg": 180,
-    "calcium_mg": 47,
-    "_name": "鹌鹑蛋"
+    "calcium_mg": 47
   },
   "milk": {
     "protein_g": 3.0,
-    "potassium_mg": 211,
-    "phosphorus_mg": 71,
-    "calcium_mg": 9,
-    "_name": "牛奶"
+    "potassium_mg": 132,
+    "phosphorus_mg": 93,
+    "calcium_mg": 104
   },
   "yogurt": {
     "protein_g": 3.5,
     "potassium_mg": 150,
     "phosphorus_mg": 95,
-    "calcium_mg": 120,
-    "_name": "酸奶"
+    "calcium_mg": 120
   },
   "cheese": {
     "protein_g": 25.0,
     "potassium_mg": 98,
     "phosphorus_mg": 450,
-    "calcium_mg": 710,
-    "_name": "奶酪"
+    "calcium_mg": 710
   },
   "almond": {
-    "protein_g": 1062.0,
+    "protein_g": 21.2,
     "potassium_mg": 106,
     "phosphorus_mg": 27,
-    "calcium_mg": 97,
-    "_name": "杏仁"
+    "calcium_mg": 97
   },
   "cashew": {
     "protein_g": 18.2,
     "potassium_mg": 680,
     "phosphorus_mg": 639,
-    "calcium_mg": 19,
-    "_name": "腰果"
+    "calcium_mg": 19
   },
   "sunflower_seed": {
     "protein_g": 20.8,
     "potassium_mg": 645,
     "phosphorus_mg": 660,
-    "calcium_mg": 78,
-    "_name": "葵花籽"
+    "calcium_mg": 78
   },
   "pumpkin_seed": {
     "protein_g": 30.2,
     "potassium_mg": 809,
     "phosphorus_mg": 1233,
-    "calcium_mg": 43,
-    "_name": "南瓜籽"
+    "calcium_mg": 43
   }
-}
+};

@@ -41,7 +41,7 @@
     }
 
     // 检查食物数据版本，版本变化则全量重种
-    const FOOD_VERSION = '3';
+    const FOOD_VERSION = '6';
     const storedVersion = localStorage.getItem('food_data_version');
     if (storedVersion !== FOOD_VERSION) {
       // 清除旧数据，重新种子
