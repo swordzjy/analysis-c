@@ -139,6 +139,11 @@
   flex: 1; padding: 10px 12px; border: 1px solid var(--border);
   border-radius: 10px; font-size: 15px; font-family: inherit;
 }
+.form-row select {
+  flex: 1; padding: 10px 12px; border: 1px solid var(--border);
+  border-radius: 10px; font-size: 15px; font-family: inherit;
+  background: var(--card); color: var(--text);
+}
 .btn-row { display: flex; gap: 10px; margin-top: 16px; }
 .btn-row button {
   flex: 1; padding: 14px; border-radius: 14px; border: none;
@@ -154,11 +159,105 @@
 .result-item { text-align: center; padding: 10px 4px; background: var(--card); border-radius: 10px; }
 .result-item .val { font-size: 16px; font-weight: 700; }
 .result-item .lbl { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+.success-msg {
+  padding: 12px; background: #e8f5e9; color: #2e7d32;
+  border-radius: 10px; margin-top: 12px; font-size: 14px;
+}
+.error-msg {
+  padding: 12px; background: #ffebee; color: #c62828;
+  border-radius: 10px; margin-top: 12px; font-size: 14px;
+}
 
 @media (min-width: 768px) {
   .modal-overlay { align-items: center; }
   .modal-content { border-radius: 24px; max-width: 400px; max-height: 90vh; }
 }
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px 0 10px;
+}
+.page-btn {
+  padding: 10px 18px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+  min-width: 80px;
+}
+.page-btn:active { background: var(--primary); color: white; border-color: var(--primary); }
+.page-btn[disabled] { opacity: 0.3; pointer-events: none; }
+.page-info {
+  font-size: 14px;
+  color: var(--text-light);
+  min-width: 80px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.subcat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 12px 0;
+}
+.subcat-card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 14px 8px;
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid transparent;
+  box-shadow: var(--shadow);
+  transition: all 0.15s;
+}
+.subcat-card:active { transform: scale(0.97); }
+.subcat-card .emoji { font-size: 28px; display: block; margin-bottom: 4px; }
+.subcat-card .name { font-size: 13px; font-weight: 600; }
+.subcat-card .count { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+.pie-chart-wrap {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.pie-chart-wrap svg { flex-shrink: 0; }
+.pie-legend {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 12px;
+}
+.pie-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.3;
+}
+.pie-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.pie-legend-val {
+  font-weight: 600;
+  margin-left: auto;
+}
+
+
+
 </style>
 </head>
 <body>
@@ -194,10 +293,11 @@
   <button class="tab-item" onclick="goPage('settings.html')"><span class="icon">⚙️</span>设置</button>
 </div>
 
-<script src="./src/db.js" defer></script>
-<script src="./src/foods_data.js" defer></script>
-<script src="./src/common.js" defer></script>
-<script src="./src/data-service.js" defer></script>
+<script src="./src/db.js?v=2" defer></script>
+<script src="./src/foods_data.js?v=2" defer></script>
+<script src="./src/common.js?v=2" defer></script>
+<script src="./src/api-client.js" defer></script>
+<script src="./src/data-service.js?v=2" defer></script>
 <script>
 let escapeHtml, goPage, getCategoryName, CATEGORY_ICONS;
 let DataService;
@@ -205,11 +305,16 @@ let DataService;
 let allFoods = [];
 let currentLimits = {};
 let currentCategory = null;  // null = showing category grid
+let currentPage = 1;
+const PAGE_SIZE = 24;
+let currentSubcategory = null;
+
 let activeFilter = null;     // 'kidney' | 'oxalate' | 'purine' | 'potassium' | null
 let sortAsc = false;         // sort direction
 let searchKeyword = '';
 let selectMode = false;
 let recentFoodIds = new Set(); // IDs of foods eaten in last 30 days
+let searchTimeout = null;
 
 function CATEGORY_MAP() {
   return { '谷物':'grain', '豆类':'beans', '蔬菜':'vegetable', '水果':'fruit', '肉蛋':'meat', '奶类':'dairy', '油脂坚果':'nuts' };
@@ -234,14 +339,21 @@ function getBadges(food) {
 }
 
 async function onSearch(value) {
-  searchKeyword = value.trim();
-  await render();
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    searchKeyword = value.trim();
+    currentPage = 1;
+    render();
+  }, 400);
 }
 
 function selectCategory(catId) {
   currentCategory = catId;
   activeFilter = null;
   sortAsc = false;
+  currentPage = 1;
+  currentSubcategory = null;
+
   render();
 }
 
@@ -250,6 +362,9 @@ function backToCategories() {
   activeFilter = null;
   sortAsc = false;
   searchKeyword = '';
+  currentPage = 1;
+  currentSubcategory = null;
+
   document.getElementById('searchInput').value = '';
   render();
 }
@@ -267,8 +382,27 @@ function toggleFilter(filterId) {
 function clearFilter() {
   activeFilter = null;
   sortAsc = false;
+  currentPage = 1;
+  currentSubcategory = null;
+
   render();
 }
+
+function selectSubcategory(sc) {
+  currentSubcategory = sc;
+  currentPage = 1;
+  activeFilter = null;
+  sortAsc = false;
+  render();
+}
+
+function backToSubcategories() {
+  currentSubcategory = null;
+  activeFilter = null;
+  render();
+}
+
+
 
 async function render() {
   const container = document.getElementById('contentArea');
@@ -282,8 +416,12 @@ async function render() {
   if (searchKeyword) {
     const kw = searchKeyword.toLowerCase();
     const matches = allFoods.filter(f => f.name.toLowerCase().includes(kw));
-    if (matches.length === 0) {
-      await renderNewFoodSearch(container, searchKeyword);
+   if (matches.length === 0) {
+      if (searchKeyword.length < 2) {
+        container.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>请输入至少 2 个字继续搜索</p></div>';
+        return;
+      }
+      await renderNewFoodSearchAI(container, searchKeyword);
       return;
     }
     // Filter and prioritize not-recently-eaten
@@ -297,7 +435,14 @@ async function render() {
       currentCategory = null; // show all matching, not category-filtered
     }
     activeFilter = null;
-    container.innerHTML = renderFoodList(sorted);
+    const totalResults = sorted.length;
+    const totalPages = Math.ceil(totalResults / PAGE_SIZE) || 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+    const startIdx = (currentPage - 1) * PAGE_SIZE;
+    const pageSlice = sorted.slice(startIdx, startIdx + PAGE_SIZE);
+    container.innerHTML = renderFoodList(pageSlice) + renderPagination(totalResults);
+    return;
+
     return;
   }
 
@@ -326,11 +471,61 @@ async function render() {
     return;
   }
 
-  // Showing food list within a category
+  // Showing subcategory grid (when no subcategory selected)
+  if (!currentSubcategory && !activeFilter) {
+    const scFoods = allFoods.filter(f => {
+      const cid = f.category_id || (CATEGORY_MAP())[f.category] || f.category;
+      return cid === currentCategory;
+    });
+    const scGroups = {};
+    scFoods.forEach(f => {
+      const sc = f.subcategory || 'other';
+      if (!scGroups[sc]) {
+        scGroups[sc] = { count: 0, name: f.subcategory_name || '\u5176\u4ed6', emoji: f.subcategory_emoji || '🍽️' };
+      }
+      scGroups[sc].count++;
+    });
+    // 当没有细分子类时，直接展示食物列表
+    if (Object.keys(scGroups).length === 1 && scGroups['other']) {
+      currentSubcategory = 'other';
+      await render();
+      return;
+    }
+    const filterBarSC = `
+      <div class="filter-bar">
+        <button class="filter-pill" onclick="clearFilter()">\u5168\u90e8</button>
+        <button class="filter-pill" onclick="toggleFilter('kidney')">\u2705\u62a4\u80be</button>
+        <button class="filter-pill" onclick="toggleFilter('oxalate')">\u26a0\ufe0f\u9ad8\u8349\u9178</button>
+        <button class="filter-pill" onclick="toggleFilter('purine')">🧬\u9ad8\u560c\u5464</button>
+        <button class="filter-pill" onclick="toggleFilter('potassium')">\u26a1\u9ad8\u94be</button>
+      </div>
+    `;
+    const getNameSC = getCategoryName || (id => id);
+    const iconsSC = CATEGORY_ICONS || {};
+    container.innerHTML = `
+      <div class="list-header">
+        <button onclick="backToCategories()">\u2039 \u8fd4\u56de</button>
+        <span class="cat-name">${escapeHtml(iconsSC[currentCategory] || '')} ${escapeHtml(getNameSC(currentCategory))} \u00b7 ${scFoods.length} \u79cd</span>
+      </div>
+      ${filterBarSC}
+      <div class="subcat-grid">
+        ${Object.entries(scGroups).sort((a,b) => b[1].count - a[1].count).map(([sc, info]) => `
+          <div class="subcat-card" onclick="selectSubcategory('${escapeHtml(sc)}')">
+            <span class="emoji">${escapeHtml(info.emoji)}</span>
+            <div class="name">${escapeHtml(info.name)}</div>
+            <div class="count">${info.count} \u79cd</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    return;
+  }
+
   const cm = CATEGORY_MAP();
   let foods = allFoods.filter(f => {
     const cid = f.category_id || cm[f.category] || f.category;
-    return cid === currentCategory;
+    const fsc = f.subcategory || 'other';
+    return cid === currentCategory && (!currentSubcategory || fsc === currentSubcategory);
   });
 
   const getName = getCategoryName || (id => id);
@@ -374,14 +569,20 @@ async function render() {
       potassium: '⚡ 高钾：含量 ≥ 300mg/100g，肾功能不全者需限制钾摄入'
     }[activeFilter] || ''}</div>` : ''}
   `;
+  const totalFoods = foods.length;
+  const totalPagesCat = Math.ceil(totalFoods / PAGE_SIZE) || 1;
+  if (currentPage > totalPagesCat) currentPage = totalPagesCat;
+  const startIdx = (currentPage - 1) * PAGE_SIZE;
+  const pageSlice = foods.slice(startIdx, startIdx + PAGE_SIZE);
 
   container.innerHTML = `
     <div class="list-header">
-      <button onclick="backToCategories()">‹ 返回</button>
-      <span class="cat-name">${escapeHtml(icons[currentCategory] || '')} ${escapeHtml(getName(currentCategory))} · ${foods.length} 种</span>
+      <button onclick="backToSubcategories()">‹ 返回</button>
+      <span class="cat-name">${escapeHtml(icons[currentCategory] || '')} ${escapeHtml(getName(currentCategory))} · ${totalFoods} 种</span>
     </div>
     ${filterBar}
-    ${renderFoodList(foods)}
+    ${renderFoodList(pageSlice)}
+    ${renderPagination(totalFoods)}
   `;
 }
 
@@ -425,11 +626,28 @@ function renderFoodList(foods) {
   }).join('');
 }
 
+
+function renderPagination(total) {
+  const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
+  if (totalPages <= 1) return '';
+  return '<div class="pagination">' +
+    '<button class="page-btn" onclick="changePage(' + (currentPage - 1) + ')"' + (currentPage <= 1 ? ' disabled' : '') + '>‹ 上一页</button>' +
+    '<span class="page-info">第 ' + currentPage + ' / ' + totalPages + ' 页</span>' +
+    '<button class="page-btn" onclick="changePage(' + (currentPage + 1) + ')"' + (currentPage >= totalPages ? ' disabled' : '') + '>下一页 ›</button>' +
+    '</div>';
+}
+
+function changePage(page) {
+  currentPage = page;
+  render();
+}
+
+
 async function renderNewFoodSearch(container, keyword) {
   container.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><p>正在查询「${escapeHtml(keyword)}」的营养数据…</p></div>`;
 
   try {
-    const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(keyword)}&search_simple=1&json=1&page_size=3&fields=product_name,nutriments`;
+    const url = `/api/food-search?keyword=${encodeURIComponent(keyword)}`;
     const resp = await fetch(url);
     if (!resp.ok) throw new Error('API failed');
     const data = await resp.json();
@@ -516,6 +734,65 @@ function calcManual(name) {
   `;
 }
 
+
+async function queryFoodAI(foodName) {
+  try {
+    const resp = await fetch(`/api/query-food?name=${encodeURIComponent(foodName)}`);
+    if (!resp.ok) throw new Error('API failed');
+    return await resp.json();
+  } catch (e) {
+    console.error('AI query failed:', e);
+    return null;
+  }
+}
+
+async function aiQueryTrace(foodId, foodName) {
+  const result = await queryFoodAI(foodName);
+  if (result && !result.error) {
+    showFoodDetail(foodId);
+  } else {
+    alert('AI 查询失败，请稍后重试');
+  }
+}
+
+
+function getNutrientColor(key) {
+  const map = {
+    protein: 'var(--n-protein)',
+    potassium: 'var(--n-potassium)',
+    phosphorus: 'var(--n-phosphorus)',
+    calcium: 'var(--n-calcium)',
+    oxalate: 'var(--n-oxalate)',
+    purine: 'var(--n-purine)'
+  };
+  return map[key] || '#999';
+}
+
+function renderDonutChart(nutrients) {
+  // 统一换算为 mg，让饼图反映各营养素的相对含量
+  const items = nutrients.map(n => {
+    let val = n.value;
+    if (n.unit === 'g') val *= 1000;
+    return { key: n.key, name: n.name, color: n.color, value: val, display: n.value, unit: n.unit };
+  });
+  const total = items.reduce((s, n) => s + n.value, 0) || 1;
+  const r = 54, cx = 70, cy = 70;
+  const circ = 2 * Math.PI * r;
+  let offset = 0;
+  let svg = '<svg width="140" height="140" viewBox="0 0 140 140">';
+  items.forEach(n => {
+    const pct = n.value / total;
+    const len = pct * circ;
+    svg += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="' + escapeHtml(n.color) + '" stroke-width="26" stroke-dasharray="' + len + ' ' + (circ - len) + '" stroke-dashoffset="' + (-offset) + '" transform="rotate(-90 ' + cx + ' ' + cy + ')"/>';
+    offset += len;
+  });
+  svg += '<circle cx="' + cx + '" cy="' + cy + '" r="32" fill="var(--card)"/>';
+  svg += '<text x="' + cx + '" y="' + (cy - 3) + '" text-anchor="middle" font-size="18" font-weight="700" fill="var(--text)">100%</text>';
+  svg += '<text x="' + cx + '" y="' + (cy + 14) + '" text-anchor="middle" font-size="11" fill="var(--text-light)">组成</text>';
+  svg += '</svg>';
+  return svg;
+}
+
 async function showFoodDetail(foodId) {
   const food = await DataService.getFoodById(foodId);
   if (!food) return;
@@ -523,15 +800,20 @@ async function showFoodDetail(foodId) {
   document.getElementById('modalTitle').textContent = (food.emoji || '🍽️') + ' ' + food.name;
 
   const nutrients = [
-    { key: 'protein', name: '蛋白质', unit: 'g', value: food.protein_g || 0, icon: '💪' },
-    { key: 'potassium', name: '钾', unit: 'mg', value: food.potassium_mg || 0, icon: '⚡' },
-    { key: 'phosphorus', name: '磷', unit: 'mg', value: food.phosphorus_mg || 0, icon: '🦴' },
-    { key: 'calcium', name: '钙', unit: 'mg', value: food.calcium_mg || 0, icon: '🥛' },
-    { key: 'oxalate', name: '草酸', unit: 'mg', value: food.oxalate_mg || 0, icon: '⚠️' },
-    { key: 'purine', name: '嘌呤', unit: 'mg', value: food.purine_mg || 0, icon: '🧬' },
+    { key: 'protein', name: '蛋白质', unit: 'g', value: food.protein_g || 0, color: getNutrientColor('protein'), icon: '💪' },
+    { key: 'potassium', name: '钾', unit: 'mg', value: food.potassium_mg || 0, color: getNutrientColor('potassium'), icon: '⚡' },
+    { key: 'phosphorus', name: '磷', unit: 'mg', value: food.phosphorus_mg || 0, color: getNutrientColor('phosphorus'), icon: '🦴' },
+    { key: 'calcium', name: '钙', unit: 'mg', value: food.calcium_mg || 0, color: getNutrientColor('calcium'), icon: '🥛' },
+    { key: 'oxalate', name: '草酸', unit: 'mg', value: food.oxalate_mg || 0, color: getNutrientColor('oxalate'), icon: '⚠️' },
+    { key: 'purine', name: '嘌呤', unit: 'mg', value: food.purine_mg || 0, color: getNutrientColor('purine'), icon: '🧬' },
   ];
 
-  let html = '<p style="font-size:13px;color:var(--text-light);margin-bottom:16px;">每100g（生重）的营养组成</p><div class="nutrient-detail-list">';
+  const pieHtml = '<div class="pie-chart-wrap">' +
+      renderDonutChart(nutrients) +
+      '<div class="pie-legend">' +
+      nutrients.map(n => '<div class="pie-legend-item"><span class="pie-legend-dot" style="background:' + escapeHtml(n.color) + '"></span>' + escapeHtml(n.name) + '<span class="pie-legend-val">' + escapeHtml(String(n.value)) + escapeHtml(n.unit) + '</span></div>').join('') +
+      '</div></div>';
+  let html = pieHtml + '<p style="font-size:13px;color:var(--text-light);margin-bottom:16px;">每100g（生重）的营养组成</p><div class="nutrient-detail-list">';
   nutrients.forEach(n => {
     html += `
       <div class="nutrient-detail-item">
@@ -543,8 +825,8 @@ async function showFoodDetail(foodId) {
     `;
   });
   html += '</div>';
-  const srcLabel = { CFCT: '中国食物成分表', USDA: 'USDA FoodData Central', PUB: '已发表研究', EST: '估算值' };
-  html += `<p style="font-size:12px;color:var(--text-light);text-align:center;margin-top:8px;">数据来源：${srcLabel[food.source] || '未知'}</p>`;
+  const srcLabel = { CFCT: '中国食物成分表', USDA: 'USDA FoodData Central', PUB: '已发表研究', EST: '估算值', user: '用户添加', dashscope: 'AI查询' };
+  html += `<p style="font-size:12px;color:var(--text-light);text-align:center;margin-top:8px;">数据来源：${escapeHtml(srcLabel[food.source] || '未知')}</p>`;
 
   document.getElementById('modalBody').innerHTML = html;
   modal.classList.add('show');
@@ -576,6 +858,145 @@ async function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+if ("serviceWorker" in navigator) {
+ navigator.serviceWorker.register("./sw.js").catch(function(){});
+}
+async function renderNewFoodSearchAI(container, keyword) {
+  container.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><p>正在查询「${escapeHtml(keyword)}」的营养数据…</p></div>`;
+
+  let aiData = null;
+  try {
+    const aiResp = await API.queryFood(keyword);
+    if (aiResp && aiResp.data && !aiResp.error) {
+      aiData = aiResp.data;
+    }
+  } catch (e) {
+    console.error('AI query failed:', e);
+  }
+
+  const defaults = {
+    protein_g: aiData?.protein_g ?? '',
+    potassium_mg: aiData?.potassium_mg ?? '',
+    phosphorus_mg: aiData?.phosphorus_mg ?? '',
+    calcium_mg: aiData?.calcium_mg ?? '',
+    oxalate_mg: aiData?.oxalate_mg ?? '',
+    purine_mg: aiData?.purine_mg ?? '',
+    kcal: aiData?.kcal ?? ''
+  };
+
+  container.innerHTML = `
+    <div class="new-food-form">
+      <h3>🔍 未在本地库找到「${escapeHtml(keyword)}」</h3>
+      <p style="font-size:13px;color:var(--text-light);margin-bottom:16px;">
+        ${aiData ? 'AI 已查询到每100g估算值，您可直接保存或修改后提交' : 'AI 查询失败，请直接输入每100g的营养成分'}
+      </p>
+      <div class="form-row"><label>名称</label><input type="text" id="nfName" value="${escapeHtml(keyword)}"></div>
+      <div class="form-row"><label>类别</label>
+        <select id="nfCategory">
+          <option value="vegetable" selected>蔬菜</option>
+          <option value="fruit">水果</option>
+          <option value="grain">谷物</option>
+          <option value="beans">豆类</option>
+          <option value="meat">肉蛋</option>
+          <option value="dairy">奶类</option>
+          <option value="nuts">油脂坚果</option>
+          <option value="other">其他</option>
+        </select>
+      </div>
+      <div class="form-row"><label>热量</label><input type="number" id="nfKcal" placeholder="kcal" step="1" value="${defaults.kcal}"></div>
+      <div class="form-row"><label>蛋白质</label><input type="number" id="nfProtein" placeholder="g" step="0.1" value="${defaults.protein_g}"></div>
+      <div class="form-row"><label>钾</label><input type="number" id="nfPotassium" placeholder="mg" step="1" value="${defaults.potassium_mg}"></div>
+      <div class="form-row"><label>磷</label><input type="number" id="nfPhosphorus" placeholder="mg" step="1" value="${defaults.phosphorus_mg}"></div>
+      <div class="form-row"><label>钙</label><input type="number" id="nfCalcium" placeholder="mg" step="1" value="${defaults.calcium_mg}"></div>
+      <div class="form-row"><label>草酸</label><input type="number" id="nfOxalate" placeholder="mg" step="1" value="${defaults.oxalate_mg}"></div>
+      <div class="form-row"><label>嘌呤</label><input type="number" id="nfPurine" placeholder="mg" step="1" value="${defaults.purine_mg}"></div>
+      <div class="btn-row">
+        <button class="btn-reset" onclick="resetNewFood()">清空</button>
+        <button class="btn-calc" onclick="calcNewFood()">查看营养分布</button>
+        <button class="btn-calc" onclick="saveNewFood()">保存到食物库</button>
+      </div>
+      <div id="newFoodResult"></div>
+    </div>
+  `;
+}
+
+function resetNewFood() {
+  const form = document.querySelector('.new-food-form');
+  if (!form) return;
+  form.querySelectorAll('input').forEach(i => i.value = '');
+  const sel = document.getElementById('nfCategory');
+  if (sel) sel.value = 'vegetable';
+  const res = document.getElementById('newFoodResult');
+  if (res) res.innerHTML = '';
+}
+
+function calcNewFood() {
+  const name = document.getElementById('nfName')?.value.trim() || '新食物';
+  const items = [
+    { k: 'nfProtein', l: '蛋白质', u: 'g', lim: currentLimits.protein || 50, i: '💪' },
+    { k: 'nfPotassium', l: '钾', u: 'mg', lim: currentLimits.potassium || 2500, i: '⚡' },
+    { k: 'nfPhosphorus', l: '磷', u: 'mg', lim: currentLimits.phosphorus || 1000, i: '🦴' },
+    { k: 'nfCalcium', l: '钙', u: 'mg', lim: currentLimits.calcium || 800, i: '🥛' },
+    { k: 'nfOxalate', l: '草酸', u: 'mg', lim: currentLimits.oxalate || 200, i: '⚠️' },
+    { k: 'nfPurine', l: '嘌呤', u: 'mg', lim: currentLimits.purine || 300, i: '🧬' },
+    { k: 'nfKcal', l: '热量', u: 'kcal', lim: currentLimits.kcal || 2000, i: '🔥' },
+  ];
+  const r = document.getElementById('newFoodResult');
+  if (!r) return;
+  r.innerHTML = `
+    <div class="result-preview">
+      <h4>📊 ${escapeHtml(name)} 每100g营养分析</h4>
+      <div class="result-grid">
+        ${items.map(item => {
+          const v = parseFloat(document.getElementById(item.k)?.value) || 0;
+          const pct = item.lim > 0 ? (v / item.lim * 100) : 0;
+          const color = pct > 80 ? 'var(--danger)' : pct > 50 ? 'var(--warning)' : 'var(--text)';
+          return `<div class="result-item"><div class="val" style="color:${color}">${v}${item.u}</div><div class="lbl">${item.i} ${item.l} ${pct > 0 ? Math.round(pct) + '%' : ''}</div></div>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+async function saveNewFood() {
+  const name = document.getElementById('nfName')?.value.trim();
+  if (!name) {
+    alert('请输入食物名称');
+    return;
+  }
+  const getVal = id => parseFloat(document.getElementById(id)?.value) || 0;
+  const food = {
+    name,
+    category: document.getElementById('nfCategory')?.value || 'other',
+    kcal: getVal('nfKcal'),
+    protein_g: getVal('nfProtein'),
+    potassium_mg: getVal('nfPotassium'),
+    phosphorus_mg: getVal('nfPhosphorus'),
+    calcium_mg: getVal('nfCalcium'),
+    oxalate_mg: getVal('nfOxalate'),
+    purine_mg: getVal('nfPurine'),
+    source: 'user'
+  };
+  try {
+    const result = await API.createFood(food);
+    const id = result.id || name;
+    const emoji = (CATEGORY_ICONS && CATEGORY_ICONS[food.category]) || '🍽️';
+    const newFood = { id, name, emoji, ...food };
+    allFoods.push(newFood);
+    if (DataService && DataService.db && DataService.db.addFood) {
+      try { await DataService.db.addFood(newFood); } catch (e) {}
+    }
+    const res = document.getElementById('newFoodResult');
+    if (res) res.innerHTML = '<div class="success-msg">✅ 已保存到食物库，可在上方搜索并选择</div>';
+    document.getElementById('searchInput').value = '';
+    searchKeyword = '';
+    currentPage = 1;
+    setTimeout(() => render(), 0);
+  } catch (e) {
+    const res = document.getElementById('newFoodResult');
+    if (res) res.innerHTML = `<div class="error-msg">❌ 保存失败：${escapeHtml(e.message)}</div>`;
+  }
+}
 </script>
 </body>
 </html>
